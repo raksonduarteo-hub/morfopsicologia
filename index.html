@@ -1714,11 +1714,9 @@ document.getElementById('chatInput').addEventListener('input',function(){this.st
 
 function descargarPDF() {
   if (!chatContext) { alert('Primero genera el perfil completo.'); return; }
-  const jsPDFLib = window.jspdf || window.jsPDF;
-  if (!jsPDFLib) { alert('Librería PDF no disponible. Recarga la página.'); return; }
   try {
-  const jsPDF = jsPDFLib.jsPDF || jsPDFLib;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
   const gold = [155, 123, 74];
   const ink = [28, 26, 23];
   const ink3 = [138, 133, 125];
