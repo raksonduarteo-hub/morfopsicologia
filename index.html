@@ -1085,12 +1085,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
     <div class="result-header">
       <div class="result-ornament">Tu análisis morfopsicológico <div class="result-ornament-line"></div></div>
       <div class="result-intro" id="resultIntro"></div>
-      <button id="sinBtn" style="display:none;margin-top:1.2rem;width:100%;padding:14px;background:var(--ink);color:var(--bg);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;" onclick="generarSintesis()">
-        Generar perfil completo
-      </button>
-      <button id="atBtn" style="display:none;margin-top:0.75rem;width:100%;padding:14px;background:var(--gold-pale);color:var(--gold);border:1px solid rgba(155,123,74,0.3);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;" onclick="generarAmorTrabajo()">
-        Ver amor y orientación profesional
-      </button>
     </div>
 
     <!-- PERFIL -->
@@ -1279,13 +1273,19 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
 </div>
 
 <script>
-const PROMPT_ZONAS = `Eres un morfopsicólogo experto basado en el método del Dr. Louis Corman y evidencia científica en psicología facial.
+const PROMPT_COMPLETO = `Eres un morfopsicólogo experto basado en el método del Dr. Louis Corman y evidencia científica en psicología facial.
 
-Analiza el rostro dividiéndolo en tres zonas. Sé MUY ESPECÍFICO. NO uses frases genéricas.
+Analiza el rostro completo y crea el perfil de personalidad. Sé MUY ESPECÍFICO para este rostro. NO uses frases genéricas.
 
-ZONA MENTAL (frente, sienes, cejas, ojos).
-ZONA EMOCIONAL (pómulos, nariz, RLN).
-ZONA INSTINTIVA (boca, labios, mandíbula, mentón).
+ZONAS A ANALIZAR:
+- MENTAL (frente, sienes, cejas, ojos)
+- EMOCIONAL (pómulos, nariz, RLN)
+- INSTINTIVA (boca, labios, mandíbula, mentón)
+
+REGLAS ANTI EFECTO FORER:
+1. PROHIBIDO frases genéricas. Cada afirmación debe poder ser FALSA para otra persona.
+2. Menciona contradicciones internas reales.
+3. Lenguaje neutro en género. Usa tú/tu/eres/tienes.
 
 Responde ÚNICAMENTE en JSON:
 {
@@ -1315,105 +1315,43 @@ Responde ÚNICAMENTE en JSON:
       {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
       {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"}
     ]
+  },
+  "sintesis": {
+    "intro": "Frase de máximo 12 palabras que capture la esencia única de esta persona",
+    "perfil": "2 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Específicos.",
+    "puntos_fuertes": ["fortaleza concreta 1", "fortaleza 2", "fortaleza 3"],
+    "puntos_debiles": ["limitación concreta 1", "limitación 2"],
+    "profesional_intro": "1 frase sobre orientación profesional basada en los rasgos",
+    "profesiones": [
+      {"categoria": "campo", "titulo": "rol concreto"},
+      {"categoria": "campo", "titulo": "rol concreto"},
+      {"categoria": "campo", "titulo": "rol concreto"}
+    ],
+    "amor_intro": "1 frase concreta sobre cómo es esta persona en el amor",
+    "amor_necesita": "Qué necesita de una pareja en una frase",
+    "amor_compatible": "Qué perfil le complementa en una frase",
+    "amor_conflicto": "Qué perfil genera fricción en una frase"
   }
 }`;
 
-const PROMPT_PERFIL = `Eres un morfopsicólogo experto basado en el método del Dr. Louis Corman. Crea el perfil de personalidad basado en el análisis de las tres zonas.
-
-REGLAS:
-1. PROHIBIDO frases genéricas. Cada afirmación debe poder ser FALSA para otra persona.
-2. Menciona contradicciones internas reales.
-3. Lenguaje neutro en género. Usa tú/tu/eres/tienes.
-
-DATOS:
-{{ZONAS}}
-
-Responde ÚNICAMENTE en JSON:
-{
-  "intro": "Frase de máximo 12 palabras que capture la esencia única de esta persona",
-  "perfil": "2 párrafos cortos separados por |||. Máximo 3 oraciones cada uno.",
-  "puntos_fuertes": ["fortaleza concreta 1", "fortaleza 2", "fortaleza 3"],
-  "puntos_debiles": ["limitación concreta 1", "limitación 2"]
-}`;
-
-const PROMPT_AMOR_TRABAJO = `Eres un morfopsicólogo experto basado en el método del Dr. Louis Corman. Basándote en los datos de las tres zonas, genera las secciones de amor y orientación profesional.
-
-DATOS:
-{{ZONAS}}
-
-Responde ÚNICAMENTE en JSON:
-{
-  "profesional_intro": "1 frase sobre orientación profesional basada en los rasgos",
-  "profesiones": [
-    {"categoria": "campo", "titulo": "rol concreto"},
-    {"categoria": "campo", "titulo": "rol concreto"},
-    {"categoria": "campo", "titulo": "rol concreto"}
-  ],
-  "amor_intro": "1 frase concreta sobre cómo es esta persona en el amor",
-  "amor_necesita": "Qué necesita de una pareja en una frase",
-  "amor_compatible": "Qué perfil le complementa en una frase",
-  "amor_conflicto": "Qué perfil genera fricción en una frase"
-}`;
-
 const API_URL = '/api/claude';
-// Key para llamadas de texto directo (sin imagen)
-function _ak(){return ['sk-ant-api03-','REEMPLAZA_AQUI'].join('');}
 
-
-async function analizarZonas(imageBase64, imageMediaType) {
-  const r = await fetch('/api/claude', {
+async function analizarCompleto(imageBase64, imageMediaType) {
+  const r = await fetch(API_URL, {
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key': _ak(),
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1500,
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:3000,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:imageMediaType,data:imageBase64}},
-        {type:'text',text:PROMPT_ZONAS}
+        {type:'text',text:PROMPT_COMPLETO}
       ]}]
     })
   });
   if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`Error ${r.status}`); }
   const d = await r.json();
   const raw = d.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-  return JSON.parse(raw);
-}
-
-function _zonaTexto(mental, emocional, instintiva) {
-  return `Zona mental: ${mental.nombre} — ${mental.descripcion}
-Zona emocional: ${emocional.nombre} — ${emocional.descripcion}
-Zona instintiva: ${instintiva.nombre} — ${instintiva.descripcion}
-Rasgos: ${[...(mental.rasgos||[]),...(emocional.rasgos||[]),...(instintiva.rasgos||[])].map(r=>r.rasgo+': '+r.interpretacion).join(' | ')}`;
-}
-
-async function _llamarDirecto(prompt) {
-  const r = await fetch('/api/claude', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key': _ak(),
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1000,
-      messages:[{role:'user',content:prompt}]
-    })
-  });
-  if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`Error ${r.status}`); }
-  const d = await r.json();
-  const raw = d.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-  return JSON.parse(raw);
-}
-
-async function analizarPerfil(mental, emocional, instintiva) {
-  return _llamarDirecto(PROMPT_PERFIL.replace('{{ZONAS}}', _zonaTexto(mental, emocional, instintiva)));
-}
-
-async function analizarAmorTrabajo(mental, emocional, instintiva) {
-  return _llamarDirecto(PROMPT_AMOR_TRABAJO.replace('{{ZONAS}}', _zonaTexto(mental, emocional, instintiva)));
+  try { return JSON.parse(raw); }
+  catch(e) { throw new Error('Error procesando respuesta'); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1556,20 +1494,19 @@ analyzeBtn.addEventListener('click',async()=>{
 
   try {
     setStep('step1','active'); await delay(300);
-    setStep('step1','done'); setStep('step2','active'); setStep('step3','active'); setStep('step4','active');
+    setStep('step1','done'); setStep('step2','active'); setStep('step3','active'); setStep('step4','active'); setStep('step5','active');
 
-    const resultado = await analizarZonas(imageBase64, imageMediaType);
+    const resultado = await analizarCompleto(imageBase64, imageMediaType);
     const zonaMental = resultado.mental;
     const zonaEmocional = resultado.emocional;
     const zonaInstintiva = resultado.instintiva;
+    const sintesis = resultado.sintesis;
 
-    setStep('step2','done'); setStep('step3','done'); setStep('step4','done'); await delay(400);
+    setStep('step2','done'); setStep('step3','done'); setStep('step4','done'); setStep('step5','done'); await delay(400);
     creditos--;
     actualizarCreditos();
     analisisCompleto = true;
-    // Guardamos zonas para la síntesis posterior
-    window._zonas = {mental: zonaMental, emocional: zonaEmocional, instintiva: zonaInstintiva};
-    renderResultsZonas(zonaMental, zonaEmocional, zonaInstintiva);
+    renderResults(zonaMental, zonaEmocional, zonaInstintiva, sintesis);
   } catch(err) {
     console.error(err);
     showError('Hubo un problema al analizar el rostro. Asegúrate de que la imagen sea clara y esté de frente. Error: '+err.message);
@@ -1602,63 +1539,6 @@ function renderResultsZonas(mental, emocional, instintiva) {
   // Mostrar botón para generar perfil completo
   const sinBtn = document.getElementById('sinBtn');
   if (sinBtn) sinBtn.style.display = 'block';
-  results.classList.add('visible');
-  results.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-async function generarSintesis() {
-  const sinBtn = document.getElementById('sinBtn');
-  sinBtn.disabled = true;
-  sinBtn.textContent = 'Generando perfil...';
-  try {
-    const {mental, emocional, instintiva} = window._zonas;
-    const perfil = await analizarPerfil(mental, emocional, instintiva);
-    sinBtn.style.display = 'none';
-    // Mostrar perfil parcial con botón para amor y trabajo
-    renderPerfil(mental, emocional, instintiva, perfil);
-  } catch(err) {
-    sinBtn.disabled = false;
-    sinBtn.textContent = 'Generar perfil completo';
-    showError('Error generando el perfil: ' + err.message);
-  }
-}
-
-async function generarAmorTrabajo() {
-  const atBtn = document.getElementById('atBtn');
-  atBtn.disabled = true;
-  atBtn.textContent = 'Generando...';
-  try {
-    const {mental, emocional, instintiva} = window._zonas;
-    const amorTrabajo = await analizarAmorTrabajo(mental, emocional, instintiva);
-    atBtn.style.display = 'none';
-    // Completar con amor y trabajo
-    const sintesis = {...window._perfil, ...amorTrabajo};
-    renderResults(mental, emocional, instintiva, sintesis);
-  } catch(err) {
-    atBtn.disabled = false;
-    atBtn.textContent = 'Ver amor y orientación profesional';
-    showError('Error: ' + err.message);
-  }
-}
-
-function renderPerfil(mental, emocional, instintiva, perfil) {
-  loadingSection.classList.remove('visible');
-  window._perfil = perfil;
-  document.getElementById('resultIntro').textContent = perfil.intro || '';
-  document.getElementById('perfilText').innerHTML = (perfil.perfil||'').split('|||').map(p=>p.trim()).filter(Boolean).map(p=>`<p>${p}</p>`).join('');
-  document.getElementById('z1nombre').textContent = mental.nombre||'';
-  document.getElementById('z1desc').textContent = mental.descripcion||'';
-  document.getElementById('z2nombre').textContent = emocional.nombre||'';
-  document.getElementById('z2desc').textContent = emocional.descripcion||'';
-  document.getElementById('z3nombre').textContent = instintiva.nombre||'';
-  document.getElementById('z3desc').textContent = instintiva.descripcion||'';
-  const todosRasgos=[...(mental.rasgos||[]),...(emocional.rasgos||[]),...(instintiva.rasgos||[])];
-  document.getElementById('rasgosGrid').innerHTML=todosRasgos.map(r=>`<div class="rasgo-item"><div class="rasgo-feature">${r.rasgo}</div><div class="rasgo-interp">${r.interpretacion}</div></div>`).join('');
-  document.getElementById('puntosFuertes').innerHTML=(perfil.puntos_fuertes||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
-  document.getElementById('puntosDebiles').innerHTML=(perfil.puntos_debiles||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
-  // Mostrar botón amor y trabajo
-  const atBtn = document.getElementById('atBtn');
-  if (atBtn) atBtn.style.display = 'block';
   results.classList.add('visible');
   results.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1813,7 +1693,7 @@ Puntos fuertes: ${(chatContext.sintesis.puntos_fuertes||[]).join(', ')}
 A trabajar: ${(chatContext.sintesis.puntos_debiles||[]).join(', ')}
 Amor: ${chatContext.sintesis.amor_intro||''}`;
 
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':_ak(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system,
         messages:chatHistory.map(m=>({role:m.role,content:m.content}))
       })
