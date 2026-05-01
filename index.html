@@ -1318,7 +1318,7 @@ Responde ÚNICAMENTE en JSON:
   },
   "sintesis": {
     "intro": "Frase de máximo 12 palabras que capture la esencia única de esta persona",
-    "perfil": "2 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Específicos.",
+    "perfil": "3 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Específicos.",
     "puntos_fuertes": ["fortaleza concreta 1", "fortaleza 2", "fortaleza 3"],
     "puntos_debiles": ["limitación concreta 1", "limitación 2"],
     "profesional_intro": "1 frase sobre orientación profesional basada en los rasgos",
@@ -1327,10 +1327,10 @@ Responde ÚNICAMENTE en JSON:
       {"categoria": "campo", "titulo": "rol concreto"},
       {"categoria": "campo", "titulo": "rol concreto"}
     ],
-    "amor_intro": "1 frase concreta sobre cómo es esta persona en el amor",
-    "amor_necesita": "Qué necesita de una pareja en una frase",
-    "amor_compatible": "Qué perfil le complementa en una frase",
-    "amor_conflicto": "Qué perfil genera fricción en una frase"
+    "amor_intro": "2-3 frases concretas sobre cómo es esta persona en el amor y las relaciones",
+    "amor_necesita": "2 frases sobre qué necesita concretamente de una pareja para funcionar bien",
+    "amor_compatible": "2 frases sobre qué perfil le complementa y por qué específicamente",
+    "amor_conflicto": "2 frases sobre qué perfil genera fricción y por qué exactamente"
   }
 }`;
 
@@ -1715,8 +1715,10 @@ document.getElementById('chatInput').addEventListener('input',function(){this.st
 function descargarPDF() {
   if (!chatContext) { alert('Primero genera el perfil completo.'); return; }
   try {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
+  // jsPDF puede estar en window.jspdf.jsPDF o window.jsPDF
+  const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!jsPDFClass) { alert('Librería PDF no disponible. Recarga la página.'); return; }
+  const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const gold = [155, 123, 74];
   const ink = [28, 26, 23];
   const ink3 = [138, 133, 125];
