@@ -2108,7 +2108,7 @@ function resetApp(){
 <script>
 function loginConGoogle() {
   // Guardar imagen si existe antes de ir a Google
-  if (imageBase64) {
+  if (typeof imageBase64 !== 'undefined' && imageBase64) {
     sessionStorage.setItem('pf_img_b64', imageBase64);
     sessionStorage.setItem('pf_img_type', imageMediaType);
     if (window._imagePdfDataUrl) sessionStorage.setItem('pf_img_pdf', window._imagePdfDataUrl);
