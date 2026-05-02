@@ -1795,9 +1795,11 @@ function descargarPDF() {
   doc.text('PUNTOS FUERTES', margin, y); y += 8;
 
   (chatContext.sintesis.puntos_fuertes || []).forEach(p => {
-    checkY(8);
+    checkY(10);
     doc.setFontSize(9); doc.setTextColor(...ink);
-    doc.text('✓  ' + p, margin + 2, y); y += 6;
+    const lines = doc.splitTextToSize('- ' + p, maxW - 4);
+    lines.forEach(line => { doc.text(line, margin + 2, y); y += 5.5; });
+    y += 1;
   });
 
   y += 4; checkY(30);
@@ -1805,9 +1807,11 @@ function descargarPDF() {
   doc.text('A TRABAJAR', margin, y); y += 8;
 
   (chatContext.sintesis.puntos_debiles || []).forEach(p => {
-    checkY(8);
+    checkY(10);
     doc.setFontSize(9); doc.setTextColor(...ink);
-    doc.text('→  ' + p, margin + 2, y); y += 6;
+    const lines = doc.splitTextToSize('- ' + p, maxW - 4);
+    lines.forEach(line => { doc.text(line, margin + 2, y); y += 5.5; });
+    y += 1;
   });
 
   // ── AMOR ──
