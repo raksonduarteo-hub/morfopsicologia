@@ -88,6 +88,9 @@ async function cargarConocimiento() {
   } catch(e) {}
   return [];
 }
+
+// Helper para leer el body de la request
+function parseBody(req) {
   return new Promise((resolve) => {
     let body = '';
     req.on('data', chunk => body += chunk);
