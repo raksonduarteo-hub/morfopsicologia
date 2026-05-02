@@ -1492,14 +1492,14 @@ function processFile(file) {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Máximo 800px en el lado más largo
-      const maxSize = 300;
+      // Railway sin timeout — mayor resolución para mejor análisis y PDF
+      const maxSize = 1024;
       let w = img.width, h = img.height;
       if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
       else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL('image/jpeg', 0.50);
+      const compressed = canvas.toDataURL('image/jpeg', 0.90);
       imageBase64 = compressed.split(',')[1];
       renderUploadZone(ev.target.result);
       analyzeBtn.disabled = false;
