@@ -128,21 +128,10 @@ const server = http.createServer(async (req, res) => {
     return json({ creditos: 0 });
   }
 
-  // ── ANÁLISIS: Proxy a Anthropic con descuento de crédito ──
+  // ── ANÁLISIS: Proxy a Anthropic ──
   if (req.method === 'POST' && req.url === '/api/claude') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
-
-    // Verificar créditos si hay token
-    if (token) {
-      const perfil = await supabaseFetch('/rest/v1/profiles?select=id,creditos', 'GET', null, token);
-      if (perfil.data && perfil.data.length > 0) {
-        const { id, creditos } = perfil.data[0];
-        if (creditos <= 0) return json({ error: { message: 'Sin créditos disponibles' } }, 402);
-        // Descontar crédito
-        await supabaseFetch(`/rest/v1/profiles?id=eq.${id}`, 'PATCH',
-          { creditos: creditos - 1, total_analisis: (perfil.data[0].total_analisis || 0) + 1 }, token);
-      }
-    }
+    if (!token) return json({ error: { message: 'Debes iniciar sesión para analizar.' } }, 401);
 
     if (!ANTHROPIC_API_KEY) return json({ error: { message: 'API key no configurada.' } }, 500);
 
