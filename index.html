@@ -982,7 +982,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
     <div class="hero-left">
       <div class="hero-eyebrow">Psicología Facial · Morfopsicología</div>
       <h1>Lo que tu rostro<br>revela de <em>ti</em></h1>
-      <p class="hero-desc">Tu rostro no es solo tu apariencia. Según el método del Dr. Louis Corman y décadas de investigación en psicología facial, cada rasgo —la forma de tu frente, tus ojos, tu mandíbula— refleja cómo piensas, sientes y te relacionas. Este análisis lee esos rasgos y los traduce en un perfil real de tu personalidad.</p>
+      <p class="hero-desc">Tu rostro no es solo tu apariencia. Según el método del Dr. Louis Corman, cada rasgo —la forma de tu frente, tus ojos, tu mandíbula— refleja cómo piensas, sientes y te relacionas.</p>
+      <button onclick="openComoFunciona()" style="margin-top:1rem;background:none;border:none;padding:0;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:3px;">¿Cómo funciona este análisis?</button>
     </div>
     <div class="hero-right">
       <div class="hero-badge">
@@ -1264,8 +1265,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
     </button>
     <button class="reset-btn" onclick="resetApp()">↑ Subir para analizar otra foto</button>
 
+    <div id="indicadoresSection" style="display:none;margin-top:2rem;padding:1.2rem;background:#FFF8F0;border:1px solid rgba(155,123,74,0.2);border-radius:12px;">
+      <div style="font-size:10px;letter-spacing:0.12em;color:var(--gold);font-weight:500;margin-bottom:0.5rem;">SEÑALES DE TENDENCIA</div>
+      <div id="indicadoresTexto" style="font-size:13px;color:var(--ink2);line-height:1.7;"></div>
+      <div style="font-size:11px;color:var(--ink4);margin-top:0.75rem;font-style:italic;">Indicadores orientativos basados en morfopsicología. No constituyen diagnóstico clínico.</div>
+    </div>
+
     <div class="disclaimer">
-      Análisis basado en el método del Dr. Louis Corman y evidencia científica publicada.<br>
+      Análisis basado en morfopsicología clínica, el método del Dr. Louis Corman y estudios contemporáneos de psicología facial.<br>
       Orientativo · No es diagnóstico clínico · "Comprender y nunca juzgar"
     </div>
 
@@ -1273,64 +1280,107 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
 </div>
 
 <script>
-const PROMPT_COMPLETO = `Eres un morfopsicólogo experto basado en el método del Dr. Louis Corman y evidencia científica en psicología facial.
+const PROMPT_COMPLETO = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman y en investigación contemporánea en psicología facial (estudios publicados entre 1990-2020 sobre correlatos faciales y rasgos de personalidad, incluyendo investigaciones sobre asimetría facial, biotipos y tonicidad).
 
-Analiza el rostro completo y crea el perfil de personalidad. Sé MUY ESPECÍFICO para este rostro. NO uses frases genéricas.
+PASO 1 — EVALUACIÓN GLOBAL (antes de analizar zonas):
+Determina:
+- BIOTIPO: ¿Dilatado (rostro ancho, expansivo, piel gruesa, rasgos abiertos) o Retraído (rostro estrecho, tenso, rasgos contraídos)? ¿O mixto?
+- TONICIDAD: ¿Hipertónico (rasgos tensos, angulosos, firmes) o Hipotónico (rasgos blandos, caídos, relajados)?
+- GÉNERO APARENTE Y MORFOLOGÍA: ¿Rostro con morfología predominantemente masculina (mandíbula cuadrada, frente angosta, rasgos duros) o femenina (rasgos más suaves, pómulos prominentes, mentón redondeado)? Esto cambia la interpretación de cada rasgo.
+- ASIMETRÍA: Evalúa asimetrías entre lado derecho (social, consciente) e izquierdo (íntimo, inconsciente). Asimetrías marcadas en frente indican tensión entre el yo consciente e inconsciente.
+- DOMINANCIA DE ZONA: ¿Qué zona domina visualmente? La zona dominante revela el motor principal de la personalidad.
 
-ZONAS A ANALIZAR:
-- MENTAL (frente, sienes, cejas, ojos)
-- EMOCIONAL (pómulos, nariz, RLN)
-- INSTINTIVA (boca, labios, mandíbula, mentón)
+PASO 2 — ANÁLISIS POR ZONAS:
 
-REGLAS ANTI EFECTO FORER:
-1. PROHIBIDO frases genéricas. Cada afirmación debe poder ser FALSA para otra persona.
-2. Menciona contradicciones internas reales.
-3. Lenguaje neutro en género. Usa tú/tu/eres/tienes.
+ZONA MENTAL (frente, sienes, cejas, ojos):
+- Frente: altura (alta=abstracción, baja=concreción), anchura (ancha=síntesis, estrecha=especialización), verticalidad, surco de reflexión (presente=capacidad de frenado, ausente=impulsividad), asimetría
+- Sienes: abombadas (imaginación), planas (practicidad), hundidas (tensión mental)
+- Cejas: arqueadas (emotividad), rectas (racionalidad), distancia interciliar (amplia=tolerancia, estrecha=tensión/rigidez), densidad
+- Ojos: apertura (grandes=receptividad extrema, pequeños=selectividad/desconfianza), tonicidad, asimetría entre ojo derecho e izquierdo
+
+ZONA EMOCIONAL (pómulos, nariz, RLN):
+- Pómulos: proyección y altura (altos y marcados=orgullo, necesidad de reconocimiento), relación con mandíbula
+- Nariz: tabique (recto=equilibrio, convexo=dominancia/orgullo, cóncavo=sumisión/receptividad), proyección, aletas (abiertas=vitalidad, cerradas=control/represión), punta
+- RLN (retracción lateronasal): ausente=expansión emocional libre, leve=cierto control, marcada=represión emocional significativa, bloqueo afectivo
+
+ZONA INSTINTIVA (boca, labios, mandíbula, mentón):
+- Boca: tamaño (grande=generosidad/necesidad de expresión, pequeña=retención/contención), tonicidad (firme=voluntad, laxa=pasividad), comisuras (hacia arriba=optimismo, hacia abajo=tendencia depresiva o pesimismo crónico)
+- Labios: superior (fino=control emocional, grueso=expresividad), inferior (fino=exigencia, grueso=sensorialidad)
+- Mandíbula: ancha (en morfología masculina indica dominancia, territorialidad; en femenina puede indicar virilización o tendencia al control), estrecha (menor capacidad de imposición), tonicidad
+- Mentón: proyectado (afirmación del yo, terquedad), retraído (inseguridad instintiva, dificultad de cierre), cuadrado (voluntad), redondeado (adaptabilidad)
+
+PASO 3 — INDICADORES PSICOPATOLÓGICOS (señales de tendencia, NO diagnóstico):
+Evalúa con criterio clínico si observas:
+- Asimetría facial marcada (especialmente en frente y ojos): tendencia a estados internos contradictorios, posible inestabilidad emocional o disociación entre imagen pública y mundo interno
+- RLN bilateral marcada + comisuras hacia abajo + ojos pequeños: patrón de represión emocional crónica, riesgo de somatización
+- Hipertonicidad generalizada + mandíbula cuadrada + cejas juntas: patrón de tensión crónica, tendencia a la agresividad controlada o explosiva
+- Hipotonía marcada + comisuras caídas + mentón retraído: vulnerabilidad depresiva, tendencia a la pasividad y resignación
+- Dominancia instintiva extrema (zona inferior muy desarrollada vs zona mental poco desarrollada): primacía de impulsos sobre reflexión
+- Ojos muy asimétricos + nariz desviada: puede indicar vivencias traumáticas integradas de manera parcial
+- Frente muy asimétrica: tensión entre pensamiento consciente e inconsciente, posible tendencia a la ciclotimia o cambios de humor
+
+Si no observas indicadores claros, NO inventes. Indica "No se observan indicadores significativos."
+
+REGLAS ABSOLUTAS:
+1. Diferencia siempre según género aparente: el mismo rasgo tiene distinto peso en morfología masculina vs femenina
+2. Relaciona el biotipo con cada interpretación: un rasgo en un dilatado significa algo distinto que en un retraído
+3. PROHIBIDO frases genéricas aplicables a cualquier persona
+4. Cada afirmación debe poder ser FALSA para otra persona
+5. Menciona contradicciones internas reales entre zonas
+6. Lenguaje neutro en género gramatical. Usa tú/tu/eres/tienes
+7. Los indicadores psicopatológicos son TENDENCIAS, nunca diagnósticos. Usa lenguaje de probabilidad ("puede indicar", "sugiere tendencia a", "podría manifestarse como")
 
 Responde ÚNICAMENTE en JSON:
 {
+  "biotipo": "dilatado/retraído/mixto y descripción breve de lo que determina esto en este rostro",
+  "tonicidad": "hipertónico/hipotónico/mixto y qué implica para este rostro",
+  "dominancia": "zona dominante y qué revela sobre el motor de esta persona",
   "mental": {
-    "nombre": "2-3 palabras únicas",
-    "descripcion": "2 frases concretas sobre cómo piensa esta persona",
+    "nombre": "2-3 palabras únicas que describan esta zona en este rostro",
+    "descripcion": "2 frases concretas y específicas sobre cómo piensa esta persona",
     "rasgos": [
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"}
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"}
     ]
   },
   "emocional": {
     "nombre": "2-3 palabras únicas",
-    "descripcion": "2 frases concretas sobre cómo siente esta persona",
+    "descripcion": "2 frases concretas sobre cómo siente y se relaciona esta persona",
     "rasgos": [
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"}
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"}
     ]
   },
   "instintiva": {
     "nombre": "2-3 palabras únicas",
-    "descripcion": "2 frases concretas sobre la energía vital de esta persona",
+    "descripcion": "2 frases concretas sobre la energía vital y acción de esta persona",
     "rasgos": [
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"},
-      {"rasgo": "rasgo observado", "interpretacion": "interpretación específica"}
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"}
     ]
   },
+  "indicadores": {
+    "nivel": "sin indicadores / leve / moderado / significativo",
+    "descripcion": "Descripción clínica de los indicadores observados o ausencia de ellos. Máximo 3 frases. Lenguaje de tendencia, nunca diagnóstico."
+  },
   "sintesis": {
-    "intro": "Frase de máximo 12 palabras que capture la esencia única de esta persona",
-    "perfil": "3 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Específicos.",
-    "puntos_fuertes": ["fortaleza concreta 1", "fortaleza 2", "fortaleza 3"],
-    "puntos_debiles": ["limitación concreta 1", "limitación 2"],
-    "profesional_intro": "1 frase sobre orientación profesional basada en los rasgos",
+    "intro": "Frase de máximo 12 palabras que capture la esencia única y paradójica de esta persona",
+    "perfil": "3 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Que integren biotipo, tonicidad y dominancia.",
+    "puntos_fuertes": ["fortaleza muy concreta y específica 1", "fortaleza 2", "fortaleza 3"],
+    "puntos_debiles": ["limitación muy concreta 1", "limitación 2"],
+    "profesional_intro": "1 frase sobre orientación profesional que integre el biotipo y dominancia",
     "profesiones": [
       {"categoria": "campo", "titulo": "rol concreto"},
       {"categoria": "campo", "titulo": "rol concreto"},
       {"categoria": "campo", "titulo": "rol concreto"}
     ],
     "amor_intro": "2-3 frases concretas sobre cómo es esta persona en el amor y las relaciones",
-    "amor_necesita": "2 frases sobre qué necesita concretamente de una pareja para funcionar bien",
-    "amor_compatible": "2 frases sobre qué perfil le complementa y por qué específicamente",
-    "amor_conflicto": "2 frases sobre qué perfil genera fricción y por qué exactamente"
+    "amor_necesita": "2 frases sobre qué necesita concretamente de una pareja",
+    "amor_compatible": "2 frases sobre qué perfil le complementa y por qué",
+    "amor_conflicto": "2 frases sobre qué perfil genera fricción y por qué"
   }
 }`;
 
@@ -1340,7 +1390,7 @@ async function analizarCompleto(imageBase64, imageMediaType) {
   const r = await fetch(API_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:3000,
+    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:4000,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:imageMediaType,data:imageBase64}},
         {type:'text',text:PROMPT_COMPLETO}
@@ -1506,7 +1556,7 @@ analyzeBtn.addEventListener('click',async()=>{
     creditos--;
     actualizarCreditos();
     analisisCompleto = true;
-    renderResults(zonaMental, zonaEmocional, zonaInstintiva, sintesis);
+    renderResults(resultado.mental, resultado.emocional, resultado.instintiva, resultado.sintesis, resultado);
   } catch(err) {
     console.error(err);
     showError('Hubo un problema al analizar el rostro. Asegúrate de que la imagen sea clara y esté de frente. Error: '+err.message);
@@ -1514,9 +1564,18 @@ analyzeBtn.addEventListener('click',async()=>{
 });
 
 
-function renderResults(mental,emocional,instintiva,sintesis) {
+function renderResults(mental,emocional,instintiva,sintesis,datos) {
   loadingSection.classList.remove('visible');
   document.getElementById('resultIntro').textContent=sintesis.intro||'';
+
+  // Mostrar biotipo y dominancia si existen
+  if (datos && (datos.biotipo || datos.dominancia)) {
+    const bioEl = document.getElementById('resultIntro');
+    let bioHtml = `<em style="font-size:13px;opacity:0.75;">${sintesis.intro||''}</em>`;
+    if (datos.biotipo) bioHtml += `<div style="margin-top:0.5rem;font-size:12px;color:var(--ink3)">Biotipo: ${datos.biotipo}</div>`;
+    if (datos.dominancia) bioHtml += `<div style="font-size:12px;color:var(--ink3)">Motor principal: ${datos.dominancia}</div>`;
+    bioEl.innerHTML = bioHtml;
+  }
 
   // FREEMIUM: Si no hay créditos mostrar solo intro + gancho
   if(!analisisCompleto) {
@@ -1569,6 +1628,16 @@ function renderResults(mental,emocional,instintiva,sintesis) {
   document.getElementById('rasgosGrid').innerHTML=todosRasgos.map(r=>`<div class="rasgo-item"><div class="rasgo-feature">${r.rasgo}</div><div class="rasgo-interp">${r.interpretacion}</div></div>`).join('');
   document.getElementById('puntosFuertes').innerHTML=(sintesis.puntos_fuertes||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
   document.getElementById('puntosDebiles').innerHTML=(sintesis.puntos_debiles||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
+
+  // Indicadores psicopatológicos
+  if (datos && datos.indicadores && datos.indicadores.nivel !== 'sin indicadores') {
+    const indSection = document.getElementById('indicadoresSection');
+    const indTexto = document.getElementById('indicadoresTexto');
+    if (indSection && indTexto) {
+      indTexto.textContent = datos.indicadores.descripcion || '';
+      indSection.style.display = 'block';
+    }
+  }
   document.getElementById('amorIntro').textContent=sintesis.amor_intro||'';
   document.getElementById('amorNecesita').textContent=sintesis.amor_necesita||'';
   document.getElementById('amorCompatible').textContent=sintesis.amor_compatible||'';
@@ -1883,6 +1952,54 @@ function resetApp(){
   results.classList.add('visible');
 }
 </script>
+<!-- MODAL CÓMO FUNCIONA -->
+<div id="comoFuncionaOverlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,0.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;" onclick="closeComoFunciona(event)">
+  <div style="background:var(--white);border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:2rem;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div style="font-size:11px;letter-spacing:0.12em;color:var(--gold);font-weight:500;">CÓMO FUNCIONA</div>
+      <button onclick="closeComoFunciona()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3);line-height:1;padding:4px 8px;">×</button>
+    </div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:1rem;color:var(--ink);">Morfopsicología clínica</h2>
+    <p style="font-size:13px;color:var(--ink2);line-height:1.8;margin-bottom:1rem;">La morfopsicología es una disciplina que establece correlación entre los rasgos del rostro y los rasgos del carácter. Desarrollada por el Dr. Louis Corman en el siglo XX y refinada por investigaciones contemporáneas en psicología facial, parte de que el rostro refleja cómo el sistema nervioso de una persona procesa y responde al mundo.</p>
+    
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">LAS TRES ZONAS</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        <strong>Zona mental</strong> (frente, ojos, cejas) — cómo piensas y procesas la realidad.<br>
+        <strong>Zona emocional</strong> (pómulos, nariz) — cómo sientes y te relacionas.<br>
+        <strong>Zona instintiva</strong> (boca, mandíbula, mentón) — tu energía vital y cómo actúas.
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">BIOTIPO Y TONICIDAD</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        El análisis evalúa si eres de tipo <strong>dilatado</strong> (expansivo, abierto al entorno) o <strong>retraído</strong> (concentrado en el mundo interno), y si tu tono vital es <strong>hipertónico</strong> (tenso, controlado) o <strong>hipotónico</strong> (relajado, adaptable). Estas variables cambian la interpretación de cada rasgo.
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">ASIMETRÍA E INDICADORES</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        El lado derecho del rostro refleja tu yo social y consciente. El izquierdo, tu mundo íntimo e inconsciente. Las asimetrías revelan tensiones internas. El análisis también detecta patrones que pueden indicar tendencias emocionales — siempre como orientación, nunca como diagnóstico.
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink4);font-style:italic;text-align:center;border-top:1px solid var(--border);padding-top:1rem;">"Comprender y nunca juzgar" — Dr. Louis Corman</p>
+  </div>
+</div>
+
+<script>
+function openComoFunciona() {
+  document.getElementById('comoFuncionaOverlay').style.display = 'flex';
+}
+function closeComoFunciona(e) {
+  if (!e || e.target === document.getElementById('comoFuncionaOverlay')) {
+    document.getElementById('comoFuncionaOverlay').style.display = 'none';
+  }
+}
+</script>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
