@@ -70,7 +70,24 @@ function supabaseAuth(endpoint, body) {
   });
 }
 
-function parseBody(req) {
+const ADMIN_EMAIL = 'rakson.duarteo@gmail.com';
+
+// Verificar si el token corresponde al admin
+async function esAdmin(token) {
+  if (!token) return false;
+  const r = await supabaseFetch('/rest/v1/profiles?select=email', 'GET', null, token);
+  return r.data && r.data[0] && r.data[0].email === ADMIN_EMAIL;
+}
+
+// Cargar conocimiento activo para el análisis
+async function cargarConocimiento() {
+  try {
+    const serviceKey = SUPABASE_KEY;
+    const r = await supabaseFetch('/rest/v1/conocimiento?select=titulo,contenido,categoria&activo=eq.true&order=categoria', 'GET', null, serviceKey);
+    if (r.data && r.data.length > 0) return r.data;
+  } catch(e) {}
+  return [];
+}
   return new Promise((resolve) => {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -128,14 +145,76 @@ const server = http.createServer(async (req, res) => {
     return json({ creditos: 0 });
   }
 
+  // ── ADMIN: Panel ──
+  if (req.method === 'GET' && req.url === '/admin') {
+    const adminPath = path.join(__dirname, 'admin.html');
+    fs.readFile(adminPath, (err, data) => {
+      if (err) { res.writeHead(404); res.end('Not found'); return; }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(data);
+    });
+    return;
+  }
+
+  // ── ADMIN: Listar conocimiento ──
+  if (req.method === 'GET' && req.url === '/admin/conocimiento') {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    const r = await supabaseFetch('/rest/v1/conocimiento?select=*&order=created_at.desc', 'GET', null, SUPABASE_KEY);
+    return json(r.data || []);
+  }
+
+  // ── ADMIN: Agregar conocimiento ──
+  if (req.method === 'POST' && req.url === '/admin/conocimiento') {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    const body = await parseBody(req);
+    const r = await supabaseFetch('/rest/v1/conocimiento', 'POST', body, SUPABASE_KEY);
+    return json({ success: true }, 201);
+  }
+
+  // ── ADMIN: Actualizar conocimiento ──
+  if (req.method === 'PATCH' && req.url.startsWith('/admin/conocimiento/')) {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    const id = req.url.split('/').pop();
+    const body = await parseBody(req);
+    await supabaseFetch(`/rest/v1/conocimiento?id=eq.${id}`, 'PATCH', body, SUPABASE_KEY);
+    return json({ success: true });
+  }
+
+  // ── ADMIN: Eliminar conocimiento ──
+  if (req.method === 'DELETE' && req.url.startsWith('/admin/conocimiento/')) {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    const id = req.url.split('/').pop();
+    await supabaseFetch(`/rest/v1/conocimiento?id=eq.${id}`, 'DELETE', null, SUPABASE_KEY);
+    return json({ success: true });
+  }
+
   // ── ANÁLISIS: Proxy a Anthropic ──
   if (req.method === 'POST' && req.url === '/api/claude') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     if (!token) return json({ error: { message: 'Debes iniciar sesión para analizar.' } }, 401);
-
     if (!ANTHROPIC_API_KEY) return json({ error: { message: 'API key no configurada.' } }, 500);
 
     const body = await parseBody(req);
+
+    // Cargar conocimiento activo e inyectarlo en el prompt
+    const conocimiento = await cargarConocimiento();
+    if (conocimiento.length > 0 && body.messages) {
+      const contexto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
+      const ultimoMsg = body.messages[body.messages.length - 1];
+      if (ultimoMsg && Array.isArray(ultimoMsg.content)) {
+        const textoIdx = ultimoMsg.content.findIndex(c => c.type === 'text');
+        if (textoIdx >= 0) {
+          ultimoMsg.content[textoIdx].text = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content[textoIdx].text}`;
+        }
+      } else if (ultimoMsg && typeof ultimoMsg.content === 'string') {
+        ultimoMsg.content = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content}`;
+      }
+    }
+
     const postData = JSON.stringify(body);
 
     return new Promise((resolve) => {

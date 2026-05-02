@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Psicología Facial</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f0f0f; color: #e0ddd8; min-height: 100vh; }
+.header { background: #1a1814; border-bottom: 1px solid #2a2620; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 16px; color: #9B7B4A; letter-spacing: 0.1em; }
+.container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+.card { background: #1a1814; border: 1px solid #2a2620; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.card h2 { font-size: 13px; letter-spacing: 0.1em; color: #9B7B4A; margin-bottom: 1rem; }
+input, textarea, select { width: 100%; padding: 10px 12px; background: #0f0f0f; border: 1px solid #2a2620; border-radius: 8px; color: #e0ddd8; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; margin-bottom: 0.75rem; }
+textarea { min-height: 150px; resize: vertical; }
+button { padding: 10px 20px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+.btn-primary { background: #9B7B4A; color: white; }
+.btn-danger { background: #8B3A3A; color: white; }
+.btn-toggle { background: #2a2620; color: #9B7B4A; }
+.item { background: #0f0f0f; border: 1px solid #2a2620; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+.item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.item-title { font-size: 14px; font-weight: 500; }
+.item-cat { font-size: 11px; color: #9B7B4A; background: rgba(155,123,74,0.1); padding: 2px 8px; border-radius: 10px; }
+.item-content { font-size: 12px; color: #8a8580; line-height: 1.6; max-height: 80px; overflow: hidden; }
+.item-actions { display: flex; gap: 8px; margin-top: 0.75rem; }
+.inactive { opacity: 0.5; }
+.badge-active { background: #1a3a1a; color: #4CAF50; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+.badge-inactive { background: #3a1a1a; color: #CF6679; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+#authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+#adminContent { display: none; }
+.msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 13px; }
+.msg-ok { background: #1a3a1a; color: #4CAF50; }
+.msg-err { background: #3a1a1a; color: #CF6679; }
+</style>
+</head>
+<body>
+
+<div id="authScreen">
+  <div style="text-align:center;">
+    <div style="font-size:13px;color:#9B7B4A;letter-spacing:0.1em;margin-bottom:1rem;">PSICOLOGÍA FACIAL · ADMIN</div>
+    <p style="color:#8a8580;font-size:13px;margin-bottom:1.5rem;">Verificando acceso...</p>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<div id="adminContent">
+  <div class="header">
+    <h1>PANEL DE ADMINISTRACIÓN · PSICOLOGÍA FACIAL</h1>
+    <button class="btn-toggle" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>AGREGAR CONOCIMIENTO</h2>
+      <div id="formMsg"></div>
+      <input type="text" id="nuevoTitulo" placeholder="Título (ej: Biotipo Dilatado — Características)">
+      <select id="nuevaCategoria">
+        <option value="biotipo">Biotipo</option>
+        <option value="zona_mental">Zona Mental</option>
+        <option value="zona_emocional">Zona Emocional</option>
+        <option value="zona_instintiva">Zona Instintiva</option>
+        <option value="indicadores">Indicadores Psicopatológicos</option>
+        <option value="amor">Amor y Vínculos</option>
+        <option value="general">General</option>
+      </select>
+      <textarea id="nuevoContenido" placeholder="Escribe aquí el conocimiento de morfopsicología que quieres agregar..."></textarea>
+      <button class="btn-primary" onclick="agregarConocimiento()">Agregar</button>
+    </div>
+
+    <div class="card">
+      <h2>BASE DE CONOCIMIENTO (<span id="totalItems">0</span> entradas)</h2>
+      <div id="listaConocimiento"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_EMAIL = 'rakson.duarteo@gmail.com';
+let _token = localStorage.getItem('pf_token');
+
+async function verificarAcceso() {
+  if (!_token) {
+    document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">No hay sesión activa. <a href="/" style="color:#9B7B4A;">Vuelve a la app e inicia sesión con Google.</a></p>';
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/perfil', { headers: { 'Authorization': 'Bearer ' + _token } });
+    const data = await r.json();
+    if (data.email !== ADMIN_EMAIL) {
+      document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">Acceso denegado.</p>';
+      return;
+    }
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+    cargarConocimiento();
+  } catch(e) {
+    document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">Error verificando acceso.</p>';
+  }
+}
+
+async function cargarConocimiento() {
+  const r = await fetch('/admin/conocimiento', { headers: { 'Authorization': 'Bearer ' + _token } });
+  const items = await r.json();
+  document.getElementById('totalItems').textContent = items.length;
+  document.getElementById('listaConocimiento').innerHTML = items.length === 0
+    ? '<p style="color:#8a8580;font-size:13px;text-align:center;padding:2rem;">No hay entradas aún.</p>'
+    : items.map(item => `
+      <div class="item ${item.activo ? '' : 'inactive'}">
+        <div class="item-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="item-title">${item.titulo}</span>
+            <span class="item-cat">${item.categoria}</span>
+          </div>
+          <span class="${item.activo ? 'badge-active' : 'badge-inactive'}">${item.activo ? 'Activo' : 'Inactivo'}</span>
+        </div>
+        <div class="item-content">${item.contenido}</div>
+        <div class="item-actions">
+          <button class="btn-toggle" onclick="toggleActivo('${item.id}', ${item.activo})">${item.activo ? 'Desactivar' : 'Activar'}</button>
+          <button class="btn-danger" onclick="eliminar('${item.id}')">Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+}
+
+async function agregarConocimiento() {
+  const titulo = document.getElementById('nuevoTitulo').value.trim();
+  const contenido = document.getElementById('nuevoContenido').value.trim();
+  const categoria = document.getElementById('nuevaCategoria').value;
+  const msgEl = document.getElementById('formMsg');
+
+  if (!titulo || !contenido) {
+    msgEl.innerHTML = '<div class="msg msg-err">Completa título y contenido.</div>';
+    return;
+  }
+
+  const r = await fetch('/admin/conocimiento', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token },
+    body: JSON.stringify({ titulo, contenido, categoria })
+  });
+
+  if (r.ok) {
+    msgEl.innerHTML = '<div class="msg msg-ok">✓ Agregado correctamente.</div>';
+    document.getElementById('nuevoTitulo').value = '';
+    document.getElementById('nuevoContenido').value = '';
+    cargarConocimiento();
+    setTimeout(() => msgEl.innerHTML = '', 3000);
+  } else {
+    msgEl.innerHTML = '<div class="msg msg-err">Error al agregar.</div>';
+  }
+}
+
+async function toggleActivo(id, activo) {
+  await fetch(`/admin/conocimiento/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token },
+    body: JSON.stringify({ activo: !activo })
+  });
+  cargarConocimiento();
+}
+
+async function eliminar(id) {
+  if (!confirm('¿Eliminar esta entrada?')) return;
+  await fetch(`/admin/conocimiento/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + _token }
+  });
+  cargarConocimiento();
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('pf_token');
+  window.location.href = '/';
+}
+
+verificarAcceso();
+</script>
+</body>
+</html>
