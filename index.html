@@ -1801,7 +1801,7 @@ function descargarPDF() {
   });
 
   y += 4; checkY(30);
-  doc.setFontSize(8); doc.setTextColor([155, 90, 106]);
+  doc.setFontSize(8); doc.setTextColor(155, 90, 106);
   doc.text('A TRABAJAR', margin, y); y += 8;
 
   (chatContext.sintesis.puntos_debiles || []).forEach(p => {
@@ -1815,7 +1815,7 @@ function descargarPDF() {
   doc.setFillColor(...gold);
   doc.rect(margin, y, 24, 0.5, 'F');
   y += 6;
-  doc.setFontSize(8); doc.setTextColor([155, 90, 106]);
+  doc.setFontSize(8); doc.setTextColor(155, 90, 106);
   doc.text('AMOR Y VÍNCULOS', margin, y); y += 10;
 
   wrapText(chatContext.sintesis.amor_intro || '', margin, y, maxW, 5.5, 9, ink3);
@@ -1840,7 +1840,7 @@ function descargarPDF() {
   doc.setFillColor(...gold);
   doc.rect(margin, y, 24, 0.5, 'F');
   y += 6;
-  doc.setFontSize(8); doc.setTextColor([58, 90, 122]);
+  doc.setFontSize(8); doc.setTextColor(58, 90, 122);
   doc.text('ORIENTACIÓN PROFESIONAL', margin, y); y += 10;
 
   wrapText(chatContext.sintesis.profesional_intro || '', margin, y, maxW, 5.5, 9, ink3);
