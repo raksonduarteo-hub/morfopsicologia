@@ -2108,32 +2108,21 @@ function resetApp(){
 <script>
 function loginConGoogle() {
   const supabaseUrl = 'https://qsgrqelgpgztsppvjyly.supabase.co';
-  const supabaseKey = 'sb_publishable_tVo488IG3nmmuTqTIcVBLw_2BMHpWwO';
-  const redirectTo = encodeURIComponent(window.location.origin + '/auth/callback');
-  window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}&response_type=code&client_id=${supabaseKey}`;
+  const redirectTo = encodeURIComponent(window.location.origin);
+  window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
 }
 
-// Manejar callback de Google al volver a la app
+// Manejar callback de Google al volver a la app (token viene en el hash)
 async function handleAuthCallback() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  if (!code) return;
-
-  try {
-    const r = await fetch('/auth/callback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
-    const data = await r.json();
-    if (data.access_token) {
-      _authToken = data.access_token;
-      localStorage.setItem('pf_token', _authToken);
-      await cargarPerfil();
-      // Limpiar URL
-      window.history.replaceState({}, document.title, '/');
-    }
-  } catch(e) { console.error('Error en callback:', e); }
+  const hash = window.location.hash;
+  if (!hash) return;
+  const params = new URLSearchParams(hash.substring(1));
+  const accessToken = params.get('access_token');
+  if (!accessToken) return;
+  _authToken = accessToken;
+  localStorage.setItem('pf_token', _authToken);
+  await cargarPerfil();
+  window.history.replaceState({}, document.title, '/');
 }
 
 handleAuthCallback();
