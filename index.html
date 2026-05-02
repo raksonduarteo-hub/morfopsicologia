@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Psicología Facial">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <!-- v13-direct-2026 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -1513,35 +1513,6 @@ analyzeBtn.addEventListener('click',async()=>{
   }
 });
 
-function renderResultsZonas(mental, emocional, instintiva) {
-  loadingSection.classList.remove('visible');
-  // Mostrar intro provisional
-  document.getElementById('resultIntro').textContent = 'Análisis de zonas completado. Genera el perfil completo cuando estés listo.';
-  // Zonas
-  document.getElementById('z1nombre').textContent=mental.nombre||'';
-  document.getElementById('z1desc').textContent=mental.descripcion||'';
-  document.getElementById('z2nombre').textContent=emocional.nombre||'';
-  document.getElementById('z2desc').textContent=emocional.descripcion||'';
-  document.getElementById('z3nombre').textContent=instintiva.nombre||'';
-  document.getElementById('z3desc').textContent=instintiva.descripcion||'';
-  const todosRasgos=[...(mental.rasgos||[]),...(emocional.rasgos||[]),...(instintiva.rasgos||[])];
-  document.getElementById('rasgosGrid').innerHTML=todosRasgos.map(r=>`<div class="rasgo-item"><div class="rasgo-feature">${r.rasgo}</div><div class="rasgo-interp">${r.interpretacion}</div></div>`).join('');
-  // Limpiar secciones de síntesis
-  document.getElementById('perfilText').innerHTML='';
-  document.getElementById('puntosFuertes').innerHTML='';
-  document.getElementById('puntosDebiles').innerHTML='';
-  document.getElementById('amorIntro').textContent='';
-  document.getElementById('amorNecesita').textContent='';
-  document.getElementById('amorCompatible').textContent='';
-  document.getElementById('amorConflicto').textContent='';
-  document.getElementById('profesionalIntro').textContent='';
-  document.getElementById('profesionesGrid').innerHTML='';
-  // Mostrar botón para generar perfil completo
-  const sinBtn = document.getElementById('sinBtn');
-  if (sinBtn) sinBtn.style.display = 'block';
-  results.classList.add('visible');
-  results.scrollIntoView({behavior:'smooth',block:'start'});
-}
 
 function renderResults(mental,emocional,instintiva,sintesis) {
   loadingSection.classList.remove('visible');
@@ -1715,10 +1686,8 @@ document.getElementById('chatInput').addEventListener('input',function(){this.st
 function descargarPDF() {
   if (!chatContext) { alert('Primero genera el perfil completo.'); return; }
   try {
-  // jsPDF puede estar en window.jspdf.jsPDF o window.jsPDF
-  const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-  if (!jsPDFClass) { alert('Librería PDF no disponible. Recarga la página.'); return; }
-  const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
   const gold = [155, 123, 74];
   const ink = [28, 26, 23];
   const ink3 = [138, 133, 125];
