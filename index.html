@@ -996,8 +996,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
     </div>
   </header>
 
-  <!-- BOTÓN CRÉDITOS -->
-  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+  <!-- BOTÓN CRÉDITOS Y AUTH -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <button id="authBtn" onclick="openLogin()" style="background:none;border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink2);cursor:pointer;touch-action:manipulation;">Iniciar sesión</button>
     <button class="open-packages-btn" onclick="openPaquetes()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       <span id="creditosBtn">0 créditos disponibles</span>
@@ -1387,9 +1388,10 @@ Responde ÚNICAMENTE en JSON:
 const API_URL = '/api/claude';
 
 async function analizarCompleto(imageBase64, imageMediaType) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (_authToken) headers['Authorization'] = 'Bearer ' + _authToken;
   const r = await fetch(API_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST', headers,
     body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:4000,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:imageMediaType,data:imageBase64}},
@@ -1421,12 +1423,83 @@ window.addEventListener('load', () => {
   }, 900);
 });
 
-// SISTEMA DE CRÉDITOS (localStorage simulado)
 // ═══════════════════════════════════════════════
-let creditos = parseInt(localStorage.getItem('pf_creditos') || '0');
+// SISTEMA DE AUTH Y CRÉDITOS CON SUPABASE
+let _authToken = localStorage.getItem('pf_token') || null;
+let creditos = 0;
+
+async function cargarPerfil() {
+  if (!_authToken) { creditos = 0; actualizarCreditos(); mostrarBtnLogin(); return; }
+  try {
+    const r = await fetch('/api/perfil', { headers: { 'Authorization': 'Bearer ' + _authToken } });
+    if (r.status === 401) { cerrarSesion(); return; }
+    const data = await r.json();
+    creditos = data.creditos || 0;
+    actualizarCreditos();
+    mostrarBtnUsuario(data.email);
+  } catch(e) { creditos = 0; actualizarCreditos(); }
+}
+
+function mostrarBtnLogin() {
+  const btn = document.getElementById('authBtn');
+  if (btn) { btn.textContent = 'Iniciar sesión'; btn.onclick = openLogin; }
+}
+
+function mostrarBtnUsuario(email) {
+  const btn = document.getElementById('authBtn');
+  if (btn) { btn.textContent = (email||'').split('@')[0] || 'Mi cuenta'; btn.onclick = openMiCuenta; }
+}
+
+async function login(email, password) {
+  const r = await fetch('/auth/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await r.json();
+  if (data.access_token) {
+    _authToken = data.access_token;
+    localStorage.setItem('pf_token', _authToken);
+    await cargarPerfil();
+    closeLogin();
+    return { ok: true };
+  }
+  return { ok: false, error: data.error_description || data.msg || 'Error al iniciar sesión' };
+}
+
+async function registrar(email, password) {
+  const r = await fetch('/auth/register', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await r.json();
+  if (data.access_token) {
+    _authToken = data.access_token;
+    localStorage.setItem('pf_token', _authToken);
+    await cargarPerfil();
+    closeLogin();
+    return { ok: true };
+  }
+  return { ok: false, error: data.error_description || data.msg || 'Error al registrarse' };
+}
+
+function cerrarSesion() {
+  _authToken = null;
+  localStorage.removeItem('pf_token');
+  creditos = 0;
+  actualizarCreditos();
+  mostrarBtnLogin();
+}
+
+function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
+function closeLogin(e) {
+  if (!e || e.target === document.getElementById('loginOverlay'))
+    document.getElementById('loginOverlay').style.display = 'none';
+}
+function openMiCuenta() { if (confirm('¿Cerrar sesión?')) cerrarSesion(); }
+
+cargarPerfil();
 
 function actualizarCreditos() {
-  localStorage.setItem('pf_creditos', creditos);
   document.getElementById('creditosBtn').textContent = creditos === 1 ? '1 crédito disponible' : `${creditos} créditos disponibles`;
   document.getElementById('creditosActuales').textContent = creditos === 1 ? '1 análisis' : `${creditos} análisis`;
 }
@@ -1434,6 +1507,7 @@ function actualizarCreditos() {
 actualizarCreditos();
 
 function openPaquetes() {
+  if (!_authToken) { openLogin(); return; }
   document.getElementById('modalOverlay').style.display = 'flex';
 }
 
@@ -1446,8 +1520,7 @@ function closeModal(e) {
 }
 
 function comprar(cantidad, precio) {
-  // Aquí irá la integración con MercadoPago o Stripe
-  // Por ahora simulamos la compra para pruebas
+  // Aquí irá MercadoPago — por ahora modo demo
   const confirmar = confirm(`¿Confirmas la compra de ${cantidad} análisis por $${precio.toLocaleString('es-CL')} CLP?\n\n(Modo demo: se añaden los créditos sin pago real)`);
   if (confirmar) {
     creditos += cantidad;
@@ -2013,6 +2086,59 @@ function resetApp(){
   results.classList.add('visible');
 }
 </script>
+<!-- MODAL LOGIN -->
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,0.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;" onclick="closeLogin(event)">
+  <div style="background:var(--white);border-radius:16px;max-width:380px;width:100%;padding:2rem;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--ink);">Accede a tu análisis</div>
+      <button onclick="closeLogin()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink3);line-height:1;padding:4px 8px;">×</button>
+    </div>
+
+    <p style="font-size:13px;color:var(--ink3);line-height:1.7;margin-bottom:1.5rem;">Inicia sesión para guardar tus análisis y gestionar tus créditos.</p>
+
+    <button onclick="loginConGoogle()" style="width:100%;padding:13px;background:white;color:#3c4043;border:1px solid #dadce0;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;touch-action:manipulation;transition:background 0.2s;">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      Continuar con Google
+    </button>
+
+    <div style="margin-top:1.2rem;font-size:11px;color:var(--ink4);text-align:center;">Al continuar aceptas los términos de uso del servicio</div>
+  </div>
+</div>
+
+<script>
+function loginConGoogle() {
+  const supabaseUrl = 'https://qsgrqelgpgztsppvjyly.supabase.co';
+  const supabaseKey = 'sb_publishable_tVo488IG3nmmuTqTIcVBLw_2BMHpWwO';
+  const redirectTo = encodeURIComponent(window.location.origin + '/auth/callback');
+  window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}&response_type=code&client_id=${supabaseKey}`;
+}
+
+// Manejar callback de Google al volver a la app
+async function handleAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+
+  try {
+    const r = await fetch('/auth/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const data = await r.json();
+    if (data.access_token) {
+      _authToken = data.access_token;
+      localStorage.setItem('pf_token', _authToken);
+      await cargarPerfil();
+      // Limpiar URL
+      window.history.replaceState({}, document.title, '/');
+    }
+  } catch(e) { console.error('Error en callback:', e); }
+}
+
+handleAuthCallback();
+</script>
+
 <!-- MODAL CÓMO FUNCIONA -->
 <div id="comoFuncionaOverlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,0.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;" onclick="closeComoFunciona(event)">
   <div style="background:var(--white);border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:2rem;" onclick="event.stopPropagation()">
