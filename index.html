@@ -2108,7 +2108,7 @@ function resetApp(){
 <script>
 function loginConGoogle() {
   const supabaseUrl = 'https://qsgrqelgpgztsppvjyly.supabase.co';
-  const redirectTo = encodeURIComponent(window.location.origin);
+  const redirectTo = encodeURIComponent('https://morfopsicologia-production.up.railway.app');
   window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
 }
 
