@@ -1488,11 +1488,13 @@ function processFile(file) {
   imageMediaType = 'image/jpeg';
   const reader = new FileReader();
   reader.onload = (ev) => {
-    // Comprimir imagen antes de guardar
+    // Guardar imagen original para el PDF (alta calidad)
+    window._imageOriginalDataUrl = ev.target.result;
+
+    // Comprimir para el análisis (balance calidad/velocidad)
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Railway sin timeout — mayor resolución para mejor análisis y PDF
       const maxSize = 1024;
       let w = img.width, h = img.height;
       if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
@@ -1802,18 +1804,13 @@ function descargarPDF() {
   doc.setTextColor(155, 123, 74);
   doc.text('PSICOLOGÍA FACIAL · MORFOPSICOLOGÍA', margin, 14);
 
-  // Foto del rostro (lado derecho de la portada)
-  if (imageBase64 && imageMediaType) {
+  // Foto del rostro (lado derecho de la portada) — usar imagen original para mejor calidad
+  const imgDataUrl = window._imageOriginalDataUrl || (imageBase64 ? 'data:' + imageMediaType + ';base64,' + imageBase64 : null);
+  if (imgDataUrl) {
     try {
-      const imgFormat = imageMediaType.includes('png') ? 'PNG' : 'JPEG';
-      // Foto en lado derecho, recortada como cuadrado
-      doc.addImage('data:' + imageMediaType + ';base64,' + imageBase64, imgFormat, W/2 + 5, 25, 80, 100, undefined, 'MEDIUM');
-      // Overlay semitransparente sobre la foto
-      doc.setFillColor(250, 248, 245);
-      doc.setGState(new doc.GState({opacity: 0.15}));
-      doc.rect(W/2 + 5, 25, 80, 100, 'F');
-      doc.setGState(new doc.GState({opacity: 1}));
-    } catch(imgErr) { /* Si falla la imagen, continuar sin ella */ }
+      const imgFormat = imgDataUrl.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(imgDataUrl, imgFormat, W/2 + 5, 25, 80, 100, undefined, 'FAST');
+    } catch(imgErr) { /* continuar sin imagen */ }
   }
 
   // Título
