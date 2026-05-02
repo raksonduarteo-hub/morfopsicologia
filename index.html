@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psicología Facial — Análisis de Personalidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#9B7B4A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Psicología Facial">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<!-- v13-direct-2026 -->
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #FAF8F5;
+  --bg2: #F3F0EB;
+  --bg3: #ECEAE4;
+  --white: #FFFFFF;
+  --ink: #1C1A17;
+  --ink2: #4A4640;
+  --ink3: #8A857D;
+  --ink4: #B8B3AB;
+  --gold: #9B7B4A;
+  --gold2: #C4A06A;
+  --gold-pale: #F5EDD8;
+  --gold-pale2: #FBF6EC;
+  --green: #4A7A5A;
+  --green-pale: #EDF4EF;
+  --blue: #3A5A7A;
+  --blue-pale: #EDF2F7;
+  --terra: #8B5A3A;
+  --terra-pale: #F7EFE9;
+  --rose: #9B5A6A;
+  --rose-pale: #F7EFF2;
+  --border: rgba(28,26,23,0.07);
+  --border2: rgba(28,26,23,0.13);
+  --shadow: 0 1px 2px rgba(28,26,23,0.04), 0 4px 12px rgba(28,26,23,0.05);
+  --shadow2: 0 2px 8px rgba(28,26,23,0.06), 0 12px 32px rgba(28,26,23,0.06);
+}
+
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+.app { max-width: 780px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+/* ── HERO ── */
+.hero {
+  padding: 3.5rem 0 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+
+.hero-left {}
+
+.hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--gold2);
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.hero h1 em { font-style: italic; color: var(--gold); }
+.hero-desc {
+  font-size: 14px;
+  color: var(--ink3);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 460px;
+  margin-top: 1rem;
+}
+
+.hero-right {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.hero-badge {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--gold-pale);
+  border: 1px solid rgba(155,123,74,0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.hero-badge svg { width: 28px; height: 28px; color: var(--gold); }
+.hero-badge-text { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+
+/* ── INSTRUCCIONES ── */
+/* ── ZONES PREVIEW ── */
+.zones-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+
+.zp-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  box-shadow: var(--shadow);
+  border-left: 3px solid transparent;
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.5s ease;
+}
+
+.zp-card.visible { opacity: 1; transform: translateY(0); }
+.zp-mental { border-left-color: var(--blue); }
+.zp-emocional { border-left-color: var(--green); }
+.zp-instintiva { border-left-color: var(--terra); }
+
+.zp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 100px;
+  margin-bottom: 8px;
+}
+
+.zp-mental .zp-badge { background: var(--blue-pale); color: var(--blue); }
+.zp-emocional .zp-badge { background: var(--green-pale); color: var(--green); }
+.zp-instintiva .zp-badge { background: var(--terra-pale); color: var(--terra); }
+
+.zp-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.zp-desc {
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 300;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.zp-bar { height: 2px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.zp-fill { height: 100%; border-radius: 2px; width: 0; transition: width 1.2s ease; }
+.zp-mental .zp-fill { background: linear-gradient(to right, var(--blue), #6A9ABB); }
+.zp-emocional .zp-fill { background: linear-gradient(to right, var(--green), #7AAA8A); }
+.zp-instintiva .zp-fill { background: linear-gradient(to right, var(--terra), #BB8A6A); }
+
+/* ── INSTRUCTIONS ── */
+.instructions {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.instructions-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--gold-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.instructions-icon svg { width: 16px; height: 16px; color: var(--gold); }
+
+.instructions-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink2);
+  margin-bottom: 8px;
+}
+
+.instructions-tips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+}
+
+.instructions-tip {
+  font-size: 12px;
+  color: var(--ink3);
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.instructions-tip::before {
+  content: '';
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gold2);
+  flex-shrink: 0;
+}
+
+/* ── UPLOAD ── */
+.upload-zone {
+  border: 1.5px dashed var(--border2);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.upload-zone:hover { border-color: var(--gold2); background: var(--gold-pale2); }
+.upload-zone.drag-over { border-color: var(--gold); background: var(--gold-pale); transform: scale(1.01); }
+
+.upload-zone.has-image { padding: 0; border-style: solid; border-color: var(--gold2); }
+.upload-zone img { width: 100%; max-height: 360px; object-fit: cover; object-position: center 20%; display: block; border-radius: 12px; }
+
+.upload-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: var(--gold);
+  transition: all 0.2s;
+}
+
+.upload-zone:hover .upload-icon { background: var(--gold-pale); border-color: var(--gold2); }
+.upload-icon svg { width: 22px; height: 22px; }
+.upload-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--ink); margin-bottom: 4px; }
+.upload-hint { font-size: 12px; color: var(--ink3); font-weight: 300; }
+
+.upload-change {
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(250,248,245,0.92);
+  border: 1px solid var(--border2); border-radius: 6px;
+  padding: 5px 12px; font-size: 12px; color: var(--ink2);
+  cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s;
+}
+.upload-change:hover { color: var(--gold); border-color: var(--gold2); }
+
+/* ── BUTTON ── */
+.analyze-btn {
+  width: 100%; padding: 15px;
+  background: var(--ink); color: var(--bg);
+  border: none; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.analyze-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--gold); transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+.analyze-btn:not(:disabled):hover::after { transform: translateX(0); }
+.analyze-btn span { position: relative; z-index: 1; }
+.analyze-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+/* ── LOADING ── */
+.loading-section { display: none; padding: 2rem 0; }
+.loading-section.visible { display: block; }
+
+.loading-step {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+  opacity: 0.18; transition: opacity 0.4s;
+}
+.loading-step.active { opacity: 1; }
+.loading-step.done { opacity: 0.4; }
+.step-num { font-size: 10px; color: var(--gold); letter-spacing: 0.12em; width: 22px; flex-shrink: 0; font-weight: 500; }
+.step-label { font-size: 13px; color: var(--ink2); flex: 1; font-weight: 300; }
+.step-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--border2); flex-shrink: 0; }
+.loading-step.active .step-dot { background: var(--gold); border-color: var(--gold); animation: pulse 1s ease infinite; }
+.loading-step.done .step-dot { background: var(--green); border-color: var(--green); }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+/* ── RESULTS ── */
+.results { display: none; }
+.results.visible { display: block; }
+
+/* ── RESULT HEADER ── */
+.result-header {
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 3rem;
+}
+
+.result-ornament {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--gold);
+  font-weight: 500; margin-bottom: 1.2rem;
+}
+.result-ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--gold2), transparent); opacity: 0.4; }
+
+.result-intro {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.3rem, 2.8vw, 1.75rem);
+  font-weight: 400; font-style: italic;
+  line-height: 1.45; color: var(--ink);
+  max-width: 580px;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--ink4);
+  margin-bottom: 1rem; font-weight: 500;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+
+/* ── PERFIL ── */
+.perfil-section { margin-bottom: 2.5rem; }
+
+.perfil-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow2);
+}
+
+.perfil-card-header {
+  background: var(--gold-pale2);
+  border-bottom: 1px solid rgba(155,123,74,0.12);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.perfil-card-header svg { width: 16px; height: 16px; color: var(--gold); flex-shrink: 0; }
+.perfil-card-header-text { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+
+.perfil-body { padding: 1.8rem; }
+.perfil-text { font-size: 15px; line-height: 1.9; color: var(--ink2); font-weight: 300; }
+.perfil-text p { margin-bottom: 1.2rem; }
+.perfil-text p:last-child { margin-bottom: 0; }
+
+/* ── ZONAS ── */
+.zonas-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 2.5rem; }
+
+.zona-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+}
+
+.zona-card-top {
+  padding: 1.2rem 1.2rem 1rem;
+  flex: 1;
+}
+
+.zona-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 8px; border-radius: 100px;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+
+.mental .zona-badge { background: var(--blue-pale); color: var(--blue); }
+.emocional .zona-badge { background: var(--green-pale); color: var(--green); }
+.instintiva .zona-badge { background: var(--terra-pale); color: var(--terra); }
+
+.zona-badge svg { width: 10px; height: 10px; }
+
+.zona-nombre { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 500; color: var(--ink); margin-bottom: 6px; line-height: 1.2; }
+.zona-desc { font-size: 12px; color: var(--ink3); line-height: 1.6; font-weight: 300; }
+
+.zona-card-bottom {
+  padding: 10px 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.zona-card-bottom-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.mental .zona-card-bottom-dot { background: var(--blue); }
+.emocional .zona-card-bottom-dot { background: var(--green); }
+.instintiva .zona-card-bottom-dot { background: var(--terra); }
+
+.zona-card-bottom-label { font-size: 11px; color: var(--ink4); font-weight: 300; font-style: italic; }
+
+/* ── RASGOS ── */
+.rasgos-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 2.5rem; }
+
+.rasgo-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  display: flex; gap: 10px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.rasgo-item::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--gold2), var(--gold-pale));
+}
+
+.rasgo-feature { font-size: 11px; font-weight: 500; color: var(--gold); width: 76px; flex-shrink: 0; line-height: 1.4; padding-top: 1px; }
+.rasgo-interp { font-size: 12px; color: var(--ink2); line-height: 1.65; font-weight: 300; }
+
+/* ── PUNTOS ── */
+.puntos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2.5rem; }
+
+.puntos-col {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.puntos-col-header {
+  padding: 0.9rem 1.3rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.puntos-col.fuertes .puntos-col-header { background: var(--green-pale); }
+.puntos-col.debiles .puntos-col-header { background: var(--gold-pale2); }
+
+.puntos-col-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.puntos-col.fuertes .puntos-col-icon { background: var(--green); }
+.puntos-col.debiles .puntos-col-icon { background: var(--gold2); }
+.puntos-col-icon svg { width: 11px; height: 11px; color: white; }
+
+.puntos-title { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; }
+.puntos-col.fuertes .puntos-title { color: var(--green); }
+.puntos-col.debiles .puntos-title { color: var(--gold); }
+
+.puntos-body { padding: 1rem 1.3rem; }
+
+.punto-item { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--ink2); font-weight: 300; line-height: 1.5; }
+.punto-item:last-child { border-bottom: none; padding-bottom: 0; }
+.punto-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.puntos-col.fuertes .punto-dot { background: var(--green); }
+.puntos-col.debiles .punto-dot { background: var(--gold2); }
+
+/* ── AMOR ── */
+.amor-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow2);
+  margin-bottom: 2.5rem;
+}
+
+.amor-header {
+  background: var(--rose-pale);
+  border-bottom: 1px solid rgba(155,90,106,0.12);
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.amor-header-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--rose); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.amor-header-icon svg { width: 13px; height: 13px; color: white; }
+.amor-header-text { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rose); }
+
+.amor-intro-text {
+  padding: 1.5rem;
+  font-size: 15px; color: var(--ink2); line-height: 1.8;
+  font-weight: 300; border-bottom: 1px solid var(--border);
+  font-style: italic;
+}
+
+.amor-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+
+.amor-item { padding: 1.2rem 1.3rem; border-right: 1px solid var(--border); }
+.amor-item:last-child { border-right: none; }
+
+.amor-item-header {
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 10px;
+}
+
+.amor-item-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.amor-item.necesita .amor-item-dot { background: var(--gold2); }
+.amor-item.compatible .amor-item-dot { background: var(--green); }
+.amor-item.conflicto .amor-item-dot { background: #C47A5A; }
+
+.amor-item-title { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+.amor-item.necesita .amor-item-title { color: var(--gold); }
+.amor-item.compatible .amor-item-title { color: var(--green); }
+.amor-item.conflicto .amor-item-title { color: #C47A5A; }
+
+.amor-item-text { font-size: 12px; color: var(--ink2); line-height: 1.65; font-weight: 300; }
+
+/* ── PROFESIONAL ── */
+.profesional-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 2.5rem;
+}
+
+.profesional-header {
+  background: var(--blue-pale);
+  border-bottom: 1px solid rgba(58,90,122,0.12);
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.profesional-header svg { width: 16px; height: 16px; color: var(--blue); }
+.profesional-header-text { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); }
+
+.profesional-intro-text {
+  padding: 1.2rem 1.5rem;
+  font-size: 14px; color: var(--ink2); line-height: 1.7;
+  font-weight: 300; border-bottom: 1px solid var(--border);
+  font-style: italic;
+}
+
+.profesiones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px,1fr)); gap: 8px; padding: 1.2rem 1.5rem; }
+
+.profesion-tag {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 12px; color: var(--ink2);
+  font-weight: 300; text-align: center; line-height: 1.4;
+  transition: all 0.2s;
+}
+
+.profesion-tag:hover { border-color: var(--gold2); background: var(--gold-pale2); }
+.profesion-tag strong { display: block; font-size: 10px; color: var(--gold); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+
+/* ── CHAT ── */
+.chat-section { border-top: 1px solid var(--border); padding-top: 2.5rem; margin-bottom: 2.5rem; }
+
+.chat-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+
+.chat-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0.9rem 1.3rem; display: flex; align-items: center; gap: 8px; }
+.chat-header svg { width: 14px; height: 14px; color: var(--ink3); }
+.chat-preguntas-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink3);
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.chat-preguntas-badge.warning { color: var(--gold); border-color: var(--gold2); background: var(--gold-pale2); }
+.chat-preguntas-badge.agotado { color: var(--ink4); border-color: var(--border); background: var(--bg2); }
+.chat-agotado-msg {
+  text-align: center;
+  padding: 1rem;
+  font-size: 13px;
+  color: var(--ink3);
+  font-weight: 300;
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+}
+.chat-agotado-msg strong { display: block; color: var(--ink2); font-weight: 500; margin-bottom: 4px; }
+.chat-agotado-msg button {
+  margin-top: 10px;
+  padding: 8px 18px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.chat-agotado-msg button:hover { background: var(--gold); }
+.chat-header-text { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+
+.chat-body { padding: 1.2rem 1.3rem; }
+
+.chat-messages { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.2rem; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.chat-msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.3s ease; }
+.chat-msg.user { flex-direction: row-reverse; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+.chat-avatar { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; flex-shrink: 0; color: var(--gold); background: var(--gold-pale); }
+.chat-msg.user .chat-avatar { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.chat-bubble { max-width: 76%; padding: 10px 14px; font-size: 14px; line-height: 1.65; font-weight: 300; color: var(--ink2); background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; }
+.chat-msg.user .chat-bubble { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.chat-typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.chat-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--gold2); animation: dot 1.2s ease infinite; }
+.chat-typing span:nth-child(2){animation-delay:.2s} .chat-typing span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,60%,100%{opacity:.2;transform:scale(.7)}30%{opacity:1;transform:scale(1)}}
+
+.chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+.chat-suggestion { padding: 6px 12px; border: 1px solid var(--border2); border-radius: 100px; background: var(--bg2); font-size: 12px; color: var(--ink3); cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; font-weight: 300; }
+.chat-suggestion:hover { border-color: var(--gold2); color: var(--gold); background: var(--gold-pale2); }
+
+.chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-input { flex: 1; border: 1px solid var(--border2); background: var(--bg); border-radius: 8px; padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; color: var(--ink); resize: none; min-height: 44px; max-height: 120px; overflow-y: auto; outline: none; transition: border-color 0.2s; line-height: 1.5; }
+.chat-input:focus { border-color: var(--gold2); }
+.chat-input::placeholder { color: var(--ink4); }
+
+.chat-send { width: 44px; height: 44px; background: var(--ink); border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+.chat-send:hover { background: var(--gold); }
+.chat-send:disabled { opacity: 0.3; cursor: not-allowed; }
+.chat-send svg { width: 16px; height: 16px; color: white; }
+
+/* ── FREEMIUM BLOCK ── */
+.freemium-block {
+  margin-top: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(155,123,74,0.25);
+}
+
+.freemium-lock {
+  background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-pale2) 100%);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.freemium-lock svg { color: var(--gold); opacity: 0.8; }
+
+.freemium-text {
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.65;
+  font-weight: 300;
+  max-width: 440px;
+}
+
+.freemium-text strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 6px;
+  font-family: 'Playfair Display', serif;
+}
+
+.freemium-btn {
+  padding: 11px 24px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.02em;
+}
+
+.freemium-btn:hover { background: var(--gold); }
+
+/* ── PAQUETES MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(28,26,23,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.modal-overlay.visible { display: flex; }
+
+.modal {
+  background: var(--white);
+  border-radius: 16px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(28,26,23,0.18);
+  animation: modalIn 0.25s ease;
+}
+
+@keyframes modalIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.modal-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+.modal-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; color: var(--ink); }
+.modal-sub { font-size: 13px; color: var(--ink3); font-weight: 300; margin-top: 4px; }
+
+.modal-close {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--border2); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--ink3); flex-shrink: 0; transition: all 0.2s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.modal-close:hover { background: var(--bg2); color: var(--ink); }
+.modal-close svg { width: 18px; height: 18px; }
+
+.modal-body { padding: 1.5rem; }
+
+.credits-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold-pale); border: 1px solid rgba(155,123,74,0.2);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 12px; color: var(--ink3); margin-bottom: 1.5rem;
+}
+.credits-badge strong { color: var(--gold); font-weight: 500; }
+
+.pkg-section-label {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink4); font-weight: 500; margin-bottom: 10px;
+}
+
+.pkg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.2rem; }
+
+.pkg-card {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 12px; padding: 1.1rem 1rem;
+  display: flex; flex-direction: column; gap: 9px;
+  cursor: pointer; transition: all 0.2s;
+}
+.pkg-card:hover { border-color: var(--gold2); background: var(--gold-pale2); }
+.pkg-card.featured { border: 2px solid var(--blue); background: var(--white); }
+
+.pkg-badge {
+  display: inline-block; font-size: 10px; font-weight: 500;
+  padding: 3px 8px; border-radius: 100px; align-self: flex-start;
+}
+.pkg-badge.pop { background: var(--blue-pale); color: var(--blue); }
+.pkg-badge.save { background: var(--green-pale); color: var(--green); }
+
+.pkg-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+
+.pkg-count { display: flex; align-items: baseline; gap: 4px; }
+.pkg-count-num { font-size: 26px; font-weight: 500; color: var(--ink); }
+.pkg-count-label { font-size: 12px; color: var(--ink3); }
+
+.pkg-divider { height: 0.5px; background: var(--border2); }
+
+.pkg-price-row { display: flex; justify-content: space-between; align-items: baseline; }
+.pkg-price { font-size: 18px; font-weight: 500; color: var(--ink); }
+.pkg-per { font-size: 11px; color: var(--ink3); }
+
+.pkg-features { display: flex; flex-direction: column; gap: 4px; }
+.pkg-feat { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink3); font-weight: 300; }
+.pkg-check { width: 14px; height: 14px; border-radius: 50%; background: var(--green-pale); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pkg-check svg { width: 8px; height: 8px; }
+
+.pkg-btn {
+  margin-top: auto; padding: 8px;
+  border: 1px solid var(--border2); border-radius: 8px;
+  background: transparent; font-size: 12px; font-weight: 500;
+  color: var(--ink); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  width: 100%; transition: all 0.2s;
+}
+.pkg-btn:hover { background: var(--bg2); }
+.pkg-btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
+.pkg-btn.primary:hover { background: #2A4A6A; }
+
+.pkg-single {
+  background: var(--bg2); border-radius: 10px;
+  padding: 12px 14px; display: flex;
+  align-items: center; justify-content: space-between;
+  margin-bottom: 1.2rem; border: 1px solid var(--border);
+}
+.pkg-single-info { font-size: 13px; color: var(--ink3); font-weight: 300; }
+.pkg-single-info strong { display: block; font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.pkg-single-right { display: flex; align-items: center; gap: 12px; }
+.pkg-single-price { font-size: 18px; font-weight: 500; color: var(--ink); }
+
+.pkg-note { text-align: center; font-size: 11px; color: var(--ink4); padding-top: 4px; font-weight: 300; }
+
+/* Botón para abrir paquetes */
+.open-packages-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 100px;
+  border: 1px solid var(--border2); background: var(--white);
+  font-size: 12px; color: var(--ink2); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-weight: 400;
+  transition: all 0.2s; margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+.open-packages-btn:hover { border-color: var(--gold2); color: var(--gold); }
+.open-packages-btn svg { width: 13px; height: 13px; }
+.reset-btn { width: 100%; padding: 13px; background: transparent; color: var(--ink3); border: 1px solid var(--border2); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; margin-bottom: 2rem; }
+.reset-btn:hover { border-color: var(--gold2); color: var(--gold); }
+
+.pdf-btn {
+  width: 100%; padding: 13px; margin-bottom: 0.75rem;
+  background: var(--gold-pale); color: var(--gold);
+  border: 1px solid rgba(155,123,74,0.3); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; display: none;
+  align-items: center; justify-content: center; gap: 8px;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.pdf-btn:hover { background: var(--gold-pale2); border-color: var(--gold2); }
+.pdf-btn.visible { display: flex; }
+
+.disclaimer { font-size: 12px; color: var(--ink4); text-align: center; line-height: 1.7; font-style: italic; padding-top: 1.5rem; border-top: 1px solid var(--border); font-family: 'Playfair Display', serif; }
+
+.error-box { display: none; background: #FFF5F2; border: 1px solid #E8C0B0; border-radius: 8px; padding: 1rem 1.2rem; font-size: 14px; color: #8B4A3A; line-height: 1.6; margin-bottom: 1.5rem; }
+.error-box.visible { display: block; }
+
+@media (max-width: 600px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-right { display: none; }
+  .zonas-grid, .rasgos-grid, .puntos-grid, .amor-grid { grid-template-columns: 1fr; }
+  .amor-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .amor-item:last-child { border-bottom: none; }
+  .instructions-tips { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <input type="file" accept="image/*" id="fileInput" style="display:none">
+
+  <!-- MODAL PAQUETES (movido al final para no bloquear clicks) -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Elige tu paquete</div>
+          <div class="modal-sub">Cada análisis interpreta tu rostro según el método del Dr. Louis Corman</div>
+        </div>
+        <button class="modal-close" onclick="closePaquetes()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="credits-badge">
+          Créditos disponibles: <strong id="creditosActuales">0 análisis</strong>
+        </div>
+
+        <div class="pkg-section-label">Paquetes de créditos</div>
+        <div class="pkg-grid">
+          <div class="pkg-card">
+            <div class="pkg-name">Básico</div>
+            <div class="pkg-count"><span class="pkg-count-num">5</span><span class="pkg-count-label">análisis</span></div>
+            <div class="pkg-divider"></div>
+            <div class="pkg-price-row"><span class="pkg-price">$2.990</span><span class="pkg-per">$598 c/u</span></div>
+            <div class="pkg-features">
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Resultado completo</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Sección de amor</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>3 preguntas al chat</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>PDF descargable de tu análisis</div>
+            </div>
+            <button class="pkg-btn" onclick="comprar(5, 2990)">Comprar</button>
+          </div>
+
+          <div class="pkg-card featured">
+            <div class="pkg-badge pop">Más popular</div>
+            <div class="pkg-name">Estándar</div>
+            <div class="pkg-count"><span class="pkg-count-num">20</span><span class="pkg-count-label">análisis</span></div>
+            <div class="pkg-divider"></div>
+            <div class="pkg-price-row"><span class="pkg-price">$7.990</span><span class="pkg-per">$400 c/u</span></div>
+            <div class="pkg-features">
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Resultado completo</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Sección de amor</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>3 preguntas al chat</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>PDF descargable de tu análisis</div>
+            </div>
+            <button class="pkg-btn primary" onclick="comprar(20, 7990)">Comprar</button>
+          </div>
+
+          <div class="pkg-card">
+            <div class="pkg-badge save">Mejor precio</div>
+            <div class="pkg-name">Pro</div>
+            <div class="pkg-count"><span class="pkg-count-num">50</span><span class="pkg-count-label">análisis</span></div>
+            <div class="pkg-divider"></div>
+            <div class="pkg-price-row"><span class="pkg-price">$14.990</span><span class="pkg-per">$300 c/u</span></div>
+            <div class="pkg-features">
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Resultado completo</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Sección de amor</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>3 preguntas al chat</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>PDF descargable de tu análisis</div>
+              <div class="pkg-feat"><div class="pkg-check"><svg viewBox="0 0 8 8" fill="none"><polyline points="1,4 3,6 7,2" stroke="#27500A" stroke-width="1.5" stroke-linecap="round"/></svg></div>Soporte prioritario</div>
+            </div>
+            <button class="pkg-btn" onclick="comprar(50, 14990)">Comprar</button>
+          </div>
+        </div>
+
+        <div class="pkg-section-label">Análisis individual</div>
+        <div class="pkg-single">
+          <div class="pkg-single-info">
+            <strong>1 análisis</strong>
+            Ideal para probar antes de comprar un paquete
+          </div>
+          <div class="pkg-single-right">
+            <span class="pkg-single-price">$990</span>
+            <button class="pkg-btn" style="padding:7px 16px;width:auto;margin:0;" onclick="comprar(1, 990)">Comprar</button>
+          </div>
+        </div>
+
+        <p class="pkg-note">Precios en pesos chilenos (CLP) · Los créditos no expiran · Pago seguro</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Psicología Facial · Morfopsicología</div>
+      <h1>Lo que tu rostro<br>revela de <em>ti</em></h1>
+      <p class="hero-desc">Tu rostro no es solo tu apariencia. Según el método del Dr. Louis Corman, cada rasgo —la forma de tu frente, tus ojos, tu mandíbula— refleja cómo piensas, sientes y te relacionas.</p>
+      <button onclick="openComoFunciona()" style="margin-top:1rem;background:none;border:none;padding:0;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:3px;">¿Cómo funciona este análisis?</button>
+    </div>
+    <div class="hero-right">
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M12 21C12 21 3 13.5 3 8a5 5 0 0110 0 5 5 0 0110 0c0 5.5-9 13-9 13z" stroke-linejoin="round"/>
+          <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
+        </svg>
+        <div class="hero-badge-text">Análisis</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BOTÓN CRÉDITOS -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+    <button class="open-packages-btn" onclick="openPaquetes()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span id="creditosBtn">0 créditos disponibles</span>
+    </button>
+  </div>
+
+  <!-- CUADROS DE ZONA -->
+  <div class="zones-preview">
+    <div class="zp-card zp-mental" id="zpCard1">
+      <div class="zp-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M12 2a7 7 0 017 7c0 3-1.5 5-4 6.5V18a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5C6.5 14 5 12 5 9a7 7 0 017-7z"/></svg>
+        Cerebral
+      </div>
+      <div class="zp-name">Frente · Ojos · Cejas</div>
+      <div class="zp-desc">Cómo piensas y procesas el mundo</div>
+      <div class="zp-bar"><div class="zp-fill" id="zpBar1" style="width:72%"></div></div>
+    </div>
+    <div class="zp-card zp-emocional" id="zpCard2">
+      <div class="zp-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
+        Afectiva
+      </div>
+      <div class="zp-name">Pómulos · Nariz</div>
+      <div class="zp-desc">Cómo sientes y te relacionas</div>
+      <div class="zp-bar"><div class="zp-fill" id="zpBar2" style="width:58%"></div></div>
+    </div>
+    <div class="zp-card zp-instintiva" id="zpCard3">
+      <div class="zp-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Instintiva
+      </div>
+      <div class="zp-name">Boca · Mandíbula</div>
+      <div class="zp-desc">Tu energía vital y voluntad</div>
+      <div class="zp-bar"><div class="zp-fill" id="zpBar3" style="width:85%"></div></div>
+    </div>
+  </div>
+
+  <!-- INSTRUCCIONES -->
+  <div class="instructions">
+    <div class="instructions-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="instructions-title">Para un análisis preciso, tu foto debe cumplir:</div>
+      <div class="instructions-tips">
+        <div class="instructions-tip">Mirar directo a la cámara, de frente</div>
+        <div class="instructions-tip">Buena iluminación, sin sombras</div>
+        <div class="instructions-tip">Cabello retirado del rostro</div>
+        <div class="instructions-tip">Sin lentes ni accesorios</div>
+        <div class="instructions-tip">Expresión neutra o natural</div>
+        <div class="instructions-tip">Foto nítida y reciente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+      </svg>
+    </div>
+    <div class="upload-title">Sube o arrastra tu fotografía</div>
+    <div class="upload-hint">JPG o PNG · Máximo 10MB</div>
+  </div>
+
+  <button class="analyze-btn" id="analyzeBtn" disabled><span>Analizar mi rostro</span></button>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- LOADING -->
+  <div class="loading-section" id="loadingSection">
+    <div class="loading-step" id="step1"><span class="step-num">01</span><span class="step-label">Procesando imagen y estructura facial</span><div class="step-dot"></div></div>
+    <div class="loading-step" id="step2"><span class="step-num">02</span><span class="step-label">Analizando zona mental — frente, ojos y cejas</span><div class="step-dot"></div></div>
+    <div class="loading-step" id="step3"><span class="step-num">03</span><span class="step-label">Analizando zona emocional — pómulos y nariz</span><div class="step-dot"></div></div>
+    <div class="loading-step" id="step4"><span class="step-num">04</span><span class="step-label">Analizando zona instintiva — boca y mandíbula</span><div class="step-dot"></div></div>
+    <div class="loading-step" id="step5"><span class="step-num">05</span><span class="step-label">Sintetizando tu perfil completo</span><div class="step-dot"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+
+    <div class="result-header">
+      <div class="result-ornament">Tu análisis morfopsicológico <div class="result-ornament-line"></div></div>
+      <div class="result-intro" id="resultIntro"></div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="perfil-section">
+      <div class="section-label">Perfil de personalidad</div>
+      <div class="perfil-card">
+        <div class="perfil-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <div class="perfil-card-header-text">Quién eres</div>
+        </div>
+        <div class="perfil-body">
+          <div class="perfil-text" id="perfilText"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONAS -->
+    <div class="perfil-section">
+      <div class="section-label">Las tres zonas del rostro</div>
+      <div class="zonas-grid">
+        <div class="zona-card mental">
+          <div class="zona-card-top">
+            <div class="zona-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 3-1.5 5-4 6.5V18a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5C6.5 14 5 12 5 9a7 7 0 017-7z"/></svg>
+              Mental
+            </div>
+            <div class="zona-nombre" id="z1nombre"></div>
+            <div class="zona-desc" id="z1desc"></div>
+          </div>
+          <div class="zona-card-bottom">
+            <div class="zona-card-bottom-dot"></div>
+            <div class="zona-card-bottom-label">Frente · Ojos · Cejas</div>
+          </div>
+        </div>
+        <div class="zona-card emocional">
+          <div class="zona-card-top">
+            <div class="zona-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
+              Emocional
+            </div>
+            <div class="zona-nombre" id="z2nombre"></div>
+            <div class="zona-desc" id="z2desc"></div>
+          </div>
+          <div class="zona-card-bottom">
+            <div class="zona-card-bottom-dot"></div>
+            <div class="zona-card-bottom-label">Pómulos · Nariz</div>
+          </div>
+        </div>
+        <div class="zona-card instintiva">
+          <div class="zona-card-top">
+            <div class="zona-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Instintiva
+            </div>
+            <div class="zona-nombre" id="z3nombre"></div>
+            <div class="zona-desc" id="z3desc"></div>
+          </div>
+          <div class="zona-card-bottom">
+            <div class="zona-card-bottom-dot"></div>
+            <div class="zona-card-bottom-label">Boca · Mandíbula · Mentón</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RASGOS -->
+    <div class="perfil-section">
+      <div class="section-label">Rasgos faciales y su significado</div>
+      <div class="rasgos-grid" id="rasgosGrid"></div>
+    </div>
+
+    <!-- PUNTOS -->
+    <div class="perfil-section">
+      <div class="section-label">Fortalezas y aspectos a desarrollar</div>
+      <div class="puntos-grid">
+        <div class="puntos-col fuertes">
+          <div class="puntos-col-header">
+            <div class="puntos-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="puntos-title">Puntos fuertes</div>
+          </div>
+          <div class="puntos-body"><div id="puntosFuertes"></div></div>
+        </div>
+        <div class="puntos-col debiles">
+          <div class="puntos-col-header">
+            <div class="puntos-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>
+            <div class="puntos-title">A desarrollar</div>
+          </div>
+          <div class="puntos-body"><div id="puntosDebiles"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AMOR -->
+    <div class="perfil-section">
+      <div class="section-label">En el amor y las relaciones</div>
+      <div class="amor-card">
+        <div class="amor-header">
+          <div class="amor-header-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
+          </div>
+          <div class="amor-header-text">Perfil afectivo y romántico</div>
+        </div>
+        <div class="amor-intro-text" id="amorIntro"></div>
+        <div class="amor-grid">
+          <div class="amor-item necesita">
+            <div class="amor-item-header">
+              <div class="amor-item-dot"></div>
+              <div class="amor-item-title">Qué necesitas</div>
+            </div>
+            <div class="amor-item-text" id="amorNecesita"></div>
+          </div>
+          <div class="amor-item compatible">
+            <div class="amor-item-header">
+              <div class="amor-item-dot"></div>
+              <div class="amor-item-title">Te complementa</div>
+            </div>
+            <div class="amor-item-text" id="amorCompatible"></div>
+          </div>
+          <div class="amor-item conflicto">
+            <div class="amor-item-header">
+              <div class="amor-item-dot"></div>
+              <div class="amor-item-title">Genera conflicto</div>
+            </div>
+            <div class="amor-item-text" id="amorConflicto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFESIONAL -->
+    <div class="perfil-section">
+      <div class="section-label">Orientación profesional</div>
+      <div class="profesional-card">
+        <div class="profesional-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          <div class="profesional-header-text">Tu perfil profesional</div>
+        </div>
+        <div class="profesional-intro-text" id="profesionalIntro"></div>
+        <div class="profesiones-grid" id="profesionesGrid"></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-section">
+      <div class="section-label">Consulta sobre tu análisis</div>
+      <div class="chat-card">
+        <div class="chat-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <div class="chat-header-text">Consulta sobre tu análisis</div>
+          <div class="chat-preguntas-badge" id="preguntasBadge">3 preguntas disponibles</div>
+        </div>
+        <div class="chat-body">
+          <div class="chat-suggestions" id="chatSuggestions">
+            <button class="chat-suggestion" onclick="useSuggestion(this)">¿Por qué esa orientación profesional?</button>
+            <button class="chat-suggestion" onclick="useSuggestion(this)">Explícame mi zona emocional</button>
+            <button class="chat-suggestion" onclick="useSuggestion(this)">¿Cómo trabajar mis puntos débiles?</button>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg">
+              <div class="chat-avatar">PF</div>
+              <div class="chat-bubble">Puedes preguntarme cualquier cosa sobre tu análisis. Estoy aquí para profundizar en lo que quieras entender mejor de tu perfil.</div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." rows="1"></textarea>
+            <button class="chat-send" id="chatSend" onclick="sendChatMessage()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="pdf-btn" id="pdfBtn" onclick="descargarPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Descargar PDF de tu análisis
+    </button>
+    <button class="reset-btn" onclick="resetApp()">↑ Subir para analizar otra foto</button>
+
+    <div id="indicadoresSection" style="display:none;margin-top:2rem;padding:1.2rem;background:#FFF8F0;border:1px solid rgba(155,123,74,0.2);border-radius:12px;">
+      <div style="font-size:10px;letter-spacing:0.12em;color:var(--gold);font-weight:500;margin-bottom:0.5rem;">SEÑALES DE TENDENCIA</div>
+      <div id="indicadoresTexto" style="font-size:13px;color:var(--ink2);line-height:1.7;"></div>
+      <div style="font-size:11px;color:var(--ink4);margin-top:0.75rem;font-style:italic;">Indicadores orientativos basados en morfopsicología. No constituyen diagnóstico clínico.</div>
+    </div>
+
+    <div class="disclaimer">
+      Análisis basado en morfopsicología clínica, el método del Dr. Louis Corman y estudios contemporáneos de psicología facial.<br>
+      Orientativo · No es diagnóstico clínico · "Comprender y nunca juzgar"
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PROMPT_COMPLETO = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman y en investigación contemporánea en psicología facial (estudios publicados entre 1990-2020 sobre correlatos faciales y rasgos de personalidad, incluyendo investigaciones sobre asimetría facial, biotipos y tonicidad).
+
+PASO 1 — EVALUACIÓN GLOBAL (antes de analizar zonas):
+Determina:
+- BIOTIPO: ¿Dilatado (rostro ancho, expansivo, piel gruesa, rasgos abiertos) o Retraído (rostro estrecho, tenso, rasgos contraídos)? ¿O mixto?
+- TONICIDAD: ¿Hipertónico (rasgos tensos, angulosos, firmes) o Hipotónico (rasgos blandos, caídos, relajados)?
+- GÉNERO APARENTE Y MORFOLOGÍA: ¿Rostro con morfología predominantemente masculina (mandíbula cuadrada, frente angosta, rasgos duros) o femenina (rasgos más suaves, pómulos prominentes, mentón redondeado)? Esto cambia la interpretación de cada rasgo.
+- ASIMETRÍA: Evalúa asimetrías entre lado derecho (social, consciente) e izquierdo (íntimo, inconsciente). Asimetrías marcadas en frente indican tensión entre el yo consciente e inconsciente.
+- DOMINANCIA DE ZONA: ¿Qué zona domina visualmente? La zona dominante revela el motor principal de la personalidad.
+
+PASO 2 — ANÁLISIS POR ZONAS:
+
+ZONA MENTAL (frente, sienes, cejas, ojos):
+- Frente: altura (alta=abstracción, baja=concreción), anchura (ancha=síntesis, estrecha=especialización), verticalidad, surco de reflexión (presente=capacidad de frenado, ausente=impulsividad), asimetría
+- Sienes: abombadas (imaginación), planas (practicidad), hundidas (tensión mental)
+- Cejas: arqueadas (emotividad), rectas (racionalidad), distancia interciliar (amplia=tolerancia, estrecha=tensión/rigidez), densidad
+- Ojos: apertura (grandes=receptividad extrema, pequeños=selectividad/desconfianza), tonicidad, asimetría entre ojo derecho e izquierdo
+
+ZONA EMOCIONAL (pómulos, nariz, RLN):
+- Pómulos: proyección y altura (altos y marcados=orgullo, necesidad de reconocimiento), relación con mandíbula
+- Nariz: tabique (recto=equilibrio, convexo=dominancia/orgullo, cóncavo=sumisión/receptividad), proyección, aletas (abiertas=vitalidad, cerradas=control/represión), punta
+- RLN (retracción lateronasal): ausente=expansión emocional libre, leve=cierto control, marcada=represión emocional significativa, bloqueo afectivo
+
+ZONA INSTINTIVA (boca, labios, mandíbula, mentón):
+- Boca: tamaño (grande=generosidad/necesidad de expresión, pequeña=retención/contención), tonicidad (firme=voluntad, laxa=pasividad), comisuras (hacia arriba=optimismo, hacia abajo=tendencia depresiva o pesimismo crónico)
+- Labios: superior (fino=control emocional, grueso=expresividad), inferior (fino=exigencia, grueso=sensorialidad)
+- Mandíbula: ancha (en morfología masculina indica dominancia, territorialidad; en femenina puede indicar virilización o tendencia al control), estrecha (menor capacidad de imposición), tonicidad
+- Mentón: proyectado (afirmación del yo, terquedad), retraído (inseguridad instintiva, dificultad de cierre), cuadrado (voluntad), redondeado (adaptabilidad)
+
+PASO 3 — INDICADORES PSICOPATOLÓGICOS (señales de tendencia, NO diagnóstico):
+Evalúa con criterio clínico si observas:
+- Asimetría facial marcada (especialmente en frente y ojos): tendencia a estados internos contradictorios, posible inestabilidad emocional o disociación entre imagen pública y mundo interno
+- RLN bilateral marcada + comisuras hacia abajo + ojos pequeños: patrón de represión emocional crónica, riesgo de somatización
+- Hipertonicidad generalizada + mandíbula cuadrada + cejas juntas: patrón de tensión crónica, tendencia a la agresividad controlada o explosiva
+- Hipotonía marcada + comisuras caídas + mentón retraído: vulnerabilidad depresiva, tendencia a la pasividad y resignación
+- Dominancia instintiva extrema (zona inferior muy desarrollada vs zona mental poco desarrollada): primacía de impulsos sobre reflexión
+- Ojos muy asimétricos + nariz desviada: puede indicar vivencias traumáticas integradas de manera parcial
+- Frente muy asimétrica: tensión entre pensamiento consciente e inconsciente, posible tendencia a la ciclotimia o cambios de humor
+
+Si no observas indicadores claros, NO inventes. Indica "No se observan indicadores significativos."
+
+REGLAS ABSOLUTAS:
+1. Diferencia siempre según género aparente: el mismo rasgo tiene distinto peso en morfología masculina vs femenina
+2. Relaciona el biotipo con cada interpretación: un rasgo en un dilatado significa algo distinto que en un retraído
+3. PROHIBIDO frases genéricas aplicables a cualquier persona
+4. Cada afirmación debe poder ser FALSA para otra persona
+5. Menciona contradicciones internas reales entre zonas
+6. Lenguaje neutro en género gramatical. Usa tú/tu/eres/tienes
+7. Los indicadores psicopatológicos son TENDENCIAS, nunca diagnósticos. Usa lenguaje de probabilidad ("puede indicar", "sugiere tendencia a", "podría manifestarse como")
+
+Responde ÚNICAMENTE en JSON:
+{
+  "biotipo": "dilatado/retraído/mixto y descripción breve de lo que determina esto en este rostro",
+  "tonicidad": "hipertónico/hipotónico/mixto y qué implica para este rostro",
+  "dominancia": "zona dominante y qué revela sobre el motor de esta persona",
+  "mental": {
+    "nombre": "2-3 palabras únicas que describan esta zona en este rostro",
+    "descripcion": "2 frases concretas y específicas sobre cómo piensa esta persona",
+    "rasgos": [
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica considerando biotipo y género"}
+    ]
+  },
+  "emocional": {
+    "nombre": "2-3 palabras únicas",
+    "descripcion": "2 frases concretas sobre cómo siente y se relaciona esta persona",
+    "rasgos": [
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"}
+    ]
+  },
+  "instintiva": {
+    "nombre": "2-3 palabras únicas",
+    "descripcion": "2 frases concretas sobre la energía vital y acción de esta persona",
+    "rasgos": [
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"},
+      {"rasgo": "rasgo observado con precisión", "interpretacion": "interpretación específica"}
+    ]
+  },
+  "indicadores": {
+    "nivel": "sin indicadores / leve / moderado / significativo",
+    "descripcion": "Descripción clínica de los indicadores observados o ausencia de ellos. Máximo 3 frases. Lenguaje de tendencia, nunca diagnóstico."
+  },
+  "sintesis": {
+    "intro": "Frase de máximo 12 palabras que capture la esencia única y paradójica de esta persona",
+    "perfil": "3 párrafos cortos separados por |||. Máximo 3 oraciones cada uno. Que integren biotipo, tonicidad y dominancia.",
+    "puntos_fuertes": ["fortaleza muy concreta y específica 1", "fortaleza 2", "fortaleza 3"],
+    "puntos_debiles": ["limitación muy concreta 1", "limitación 2"],
+    "profesional_intro": "1 frase sobre orientación profesional que integre el biotipo y dominancia",
+    "profesiones": [
+      {"categoria": "campo", "titulo": "rol concreto"},
+      {"categoria": "campo", "titulo": "rol concreto"},
+      {"categoria": "campo", "titulo": "rol concreto"}
+    ],
+    "amor_intro": "2-3 frases concretas sobre cómo es esta persona en el amor y las relaciones",
+    "amor_necesita": "2 frases sobre qué necesita concretamente de una pareja",
+    "amor_compatible": "2 frases sobre qué perfil le complementa y por qué",
+    "amor_conflicto": "2 frases sobre qué perfil genera fricción y por qué"
+  }
+}`;
+
+const API_URL = '/api/claude';
+
+async function analizarCompleto(imageBase64, imageMediaType) {
+  const r = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:4000,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:imageMediaType,data:imageBase64}},
+        {type:'text',text:PROMPT_COMPLETO}
+      ]}]
+    })
+  });
+  if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`Error ${r.status}`); }
+  const d = await r.json();
+  const raw = d.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+  try { return JSON.parse(raw); }
+  catch(e) { throw new Error('Error procesando respuesta'); }
+}
+
+// ═══════════════════════════════════════════════
+// Animar cuadros de zona al cargar
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('zpCard1').classList.add('visible');
+    setTimeout(() => document.getElementById('zpBar1').style.width = '72%', 200);
+  }, 400);
+  setTimeout(() => {
+    document.getElementById('zpCard2').classList.add('visible');
+    setTimeout(() => document.getElementById('zpBar2').style.width = '58%', 200);
+  }, 650);
+  setTimeout(() => {
+    document.getElementById('zpCard3').classList.add('visible');
+    setTimeout(() => document.getElementById('zpBar3').style.width = '85%', 200);
+  }, 900);
+});
+
+// SISTEMA DE CRÉDITOS (localStorage simulado)
+// ═══════════════════════════════════════════════
+let creditos = parseInt(localStorage.getItem('pf_creditos') || '0');
+
+function actualizarCreditos() {
+  localStorage.setItem('pf_creditos', creditos);
+  document.getElementById('creditosBtn').textContent = creditos === 1 ? '1 crédito disponible' : `${creditos} créditos disponibles`;
+  document.getElementById('creditosActuales').textContent = creditos === 1 ? '1 análisis' : `${creditos} análisis`;
+}
+
+actualizarCreditos();
+
+function openPaquetes() {
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closePaquetes() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closePaquetes();
+}
+
+function comprar(cantidad, precio) {
+  // Aquí irá la integración con MercadoPago o Stripe
+  // Por ahora simulamos la compra para pruebas
+  const confirmar = confirm(`¿Confirmas la compra de ${cantidad} análisis por $${precio.toLocaleString('es-CL')} CLP?\n\n(Modo demo: se añaden los créditos sin pago real)`);
+  if (confirmar) {
+    creditos += cantidad;
+    actualizarCreditos();
+    closePaquetes();
+    alert(`✓ Se añadieron ${cantidad} créditos. Ahora tienes ${creditos} análisis disponibles.`);
+  }
+}
+
+// Freemium: true = usuario pagó, false = solo muestra resumen
+let analisisCompleto = false;
+let preguntasRestantes = 3;
+
+const uploadZone=document.getElementById('uploadZone');
+const fileInput=document.getElementById('fileInput');
+const analyzeBtn=document.getElementById('analyzeBtn');
+const loadingSection=document.getElementById('loadingSection');
+const results=document.getElementById('results');
+const errorBox=document.getElementById('errorBox');
+
+uploadZone.addEventListener('click',()=>fileInput.click());
+
+uploadZone.addEventListener('dragover',(e)=>{e.preventDefault();uploadZone.classList.add('drag-over');});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop',(e)=>{
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file=e.dataTransfer.files[0];
+  if(!file||!file.type.startsWith('image/'))return;
+  processFile(file);
+});
+
+fileInput.addEventListener('change',(e)=>{
+  const file=e.target.files[0]; if(!file)return;
+  processFile(file); fileInput.value='';
+});
+
+function processFile(file) {
+  imageMediaType = 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    // Comprimir imagen antes de guardar
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      // Máximo 800px en el lado más largo
+      const maxSize = 300;
+      let w = img.width, h = img.height;
+      if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+      else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.50);
+      imageBase64 = compressed.split(',')[1];
+      renderUploadZone(ev.target.result);
+      analyzeBtn.disabled = false;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderUploadZone(dataUrl) {
+  if(dataUrl) {
+    uploadZone.innerHTML=`<img src="${dataUrl}" alt="Rostro"><div class="upload-change" id="changeBtn">Cambiar foto</div>`;
+    uploadZone.classList.add('has-image');
+    document.getElementById('changeBtn').addEventListener('click',e=>{e.stopPropagation();fileInput.click();});
+  } else {
+    uploadZone.innerHTML=`
+      <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+      <div class="upload-title">Sube o arrastra tu fotografía</div>
+      <div class="upload-hint">JPG o PNG · Máximo 10MB</div>`;
+    uploadZone.classList.remove('has-image');
+  }
+}
+
+function setStep(id,state){const el=document.getElementById(id);if(!el)return;el.classList.remove('active','done');if(state)el.classList.add(state);}
+function showError(msg){errorBox.textContent=msg;errorBox.classList.add('visible');loadingSection.classList.remove('visible');analyzeBtn.style.display='block';analyzeBtn.disabled=false;}
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+analyzeBtn.addEventListener('click',async()=>{
+  if(!imageBase64)return;
+
+  // Verificar créditos
+  if(creditos <= 0) {
+    openPaquetes();
+    return;
+  }
+
+  errorBox.classList.remove('visible');
+  analyzeBtn.style.display='none';
+  results.classList.remove('visible');
+  loadingSection.classList.add('visible');
+  ['step1','step2','step3','step4','step5'].forEach(s=>setStep(s,null));
+
+  try {
+    setStep('step1','active'); await delay(300);
+    setStep('step1','done'); setStep('step2','active'); setStep('step3','active'); setStep('step4','active'); setStep('step5','active');
+
+    const resultado = await analizarCompleto(imageBase64, imageMediaType);
+    const zonaMental = resultado.mental;
+    const zonaEmocional = resultado.emocional;
+    const zonaInstintiva = resultado.instintiva;
+    const sintesis = resultado.sintesis;
+
+    setStep('step2','done'); setStep('step3','done'); setStep('step4','done'); setStep('step5','done'); await delay(400);
+    creditos--;
+    actualizarCreditos();
+    analisisCompleto = true;
+    renderResults(resultado.mental, resultado.emocional, resultado.instintiva, resultado.sintesis, resultado);
+  } catch(err) {
+    console.error(err);
+    showError('Hubo un problema al analizar el rostro. Asegúrate de que la imagen sea clara y esté de frente. Error: '+err.message);
+  }
+});
+
+
+function renderResults(mental,emocional,instintiva,sintesis,datos) {
+  loadingSection.classList.remove('visible');
+  document.getElementById('resultIntro').textContent=sintesis.intro||'';
+
+  // Mostrar biotipo y dominancia si existen
+  if (datos && (datos.biotipo || datos.dominancia)) {
+    const bioEl = document.getElementById('resultIntro');
+    let bioHtml = `<em style="font-size:13px;opacity:0.75;">${sintesis.intro||''}</em>`;
+    if (datos.biotipo) bioHtml += `<div style="margin-top:0.5rem;font-size:12px;color:var(--ink3)">Biotipo: ${datos.biotipo}</div>`;
+    if (datos.dominancia) bioHtml += `<div style="font-size:12px;color:var(--ink3)">Motor principal: ${datos.dominancia}</div>`;
+    bioEl.innerHTML = bioHtml;
+  }
+
+  // FREEMIUM: Si no hay créditos mostrar solo intro + gancho
+  if(!analisisCompleto) {
+    // Mostrar solo primer párrafo cortado + bloqueo
+    const parrafos=(sintesis.perfil||'').split('|||').map(p=>p.trim()).filter(Boolean);
+    const primerParrafo = parrafos[0] || '';
+    const cortado = primerParrafo.substring(0, Math.floor(primerParrafo.length * 0.6)) + '...';
+    document.getElementById('perfilText').innerHTML=`
+      <p>${cortado}</p>
+      <div class="freemium-block">
+        <div class="freemium-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <div class="freemium-text">
+            <strong>Desbloquea tu análisis completo</strong>
+            Tu rostro revela algo particular en la zona ${emocional.nombre?.toLowerCase() || 'emocional'} que explica un patrón que seguramente reconoces en ti pero no has podido nombrar bien.
+          </div>
+          <button class="freemium-btn" onclick="openPaquetes()">Ver análisis completo — desde $990</button>
+        </div>
+      </div>`;
+    // Mostrar solo zona mental parcial
+    document.getElementById('z1nombre').textContent=mental.nombre||'';
+    document.getElementById('z1desc').textContent='';
+    document.getElementById('z2nombre').textContent='···';
+    document.getElementById('z2desc').textContent='';
+    document.getElementById('z3nombre').textContent='···';
+    document.getElementById('z3desc').textContent='';
+    document.getElementById('rasgosGrid').innerHTML='<div style="grid-column:1/-1;padding:1rem;text-align:center;font-size:13px;color:var(--ink3);">Desbloquea el análisis completo para ver todos los rasgos</div>';
+    document.getElementById('puntosFuertes').innerHTML='';
+    document.getElementById('puntosDebiles').innerHTML='';
+    document.getElementById('amorIntro').textContent='';
+    document.getElementById('amorNecesita').textContent='';
+    document.getElementById('amorCompatible').textContent='';
+    document.getElementById('amorConflicto').textContent='';
+    document.getElementById('profesionalIntro').textContent='';
+    document.getElementById('profesionesGrid').innerHTML='';
+    results.classList.add('visible');
+    results.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // ANÁLISIS COMPLETO
+  document.getElementById('perfilText').innerHTML=(sintesis.perfil||'').split('|||').map(p=>p.trim()).filter(Boolean).map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('z1nombre').textContent=mental.nombre||'';
+  document.getElementById('z1desc').textContent=mental.descripcion||'';
+  document.getElementById('z2nombre').textContent=emocional.nombre||'';
+  document.getElementById('z2desc').textContent=emocional.descripcion||'';
+  document.getElementById('z3nombre').textContent=instintiva.nombre||'';
+  document.getElementById('z3desc').textContent=instintiva.descripcion||'';
+  const todosRasgos=[...(mental.rasgos||[]),...(emocional.rasgos||[]),...(instintiva.rasgos||[])];
+  document.getElementById('rasgosGrid').innerHTML=todosRasgos.map(r=>`<div class="rasgo-item"><div class="rasgo-feature">${r.rasgo}</div><div class="rasgo-interp">${r.interpretacion}</div></div>`).join('');
+  document.getElementById('puntosFuertes').innerHTML=(sintesis.puntos_fuertes||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
+  document.getElementById('puntosDebiles').innerHTML=(sintesis.puntos_debiles||[]).map(p=>`<div class="punto-item"><div class="punto-dot"></div><span>${p}</span></div>`).join('');
+
+  // Indicadores psicopatológicos
+  if (datos && datos.indicadores && datos.indicadores.nivel !== 'sin indicadores') {
+    const indSection = document.getElementById('indicadoresSection');
+    const indTexto = document.getElementById('indicadoresTexto');
+    if (indSection && indTexto) {
+      indTexto.textContent = datos.indicadores.descripcion || '';
+      indSection.style.display = 'block';
+    }
+  }
+  document.getElementById('amorIntro').textContent=sintesis.amor_intro||'';
+  document.getElementById('amorNecesita').textContent=sintesis.amor_necesita||'';
+  document.getElementById('amorCompatible').textContent=sintesis.amor_compatible||'';
+  document.getElementById('amorConflicto').textContent=sintesis.amor_conflicto||'';
+  document.getElementById('profesionalIntro').textContent=sintesis.profesional_intro||'';
+  document.getElementById('profesionesGrid').innerHTML=(sintesis.profesiones||[]).map(p=>`<div class="profesion-tag"><strong>${p.categoria}</strong>${p.titulo}</div>`).join('');
+  chatContext={mental,emocional,instintiva,sintesis};
+  chatHistory=[];
+  preguntasRestantes=3;
+  actualizarBadgePreguntas();
+  document.getElementById('pdfBtn').classList.add('visible');
+  results.classList.add('visible');
+  results.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function useSuggestion(btn){document.getElementById('chatInput').value=btn.textContent;btn.style.display='none';document.getElementById('chatInput').focus();}
+
+function addChatMessage(role,text){
+  const container=document.getElementById('chatMessages');
+  const isUser=role==='user';
+  const div=document.createElement('div');
+  div.className=`chat-msg${isUser?' user':''}`;
+  div.innerHTML=`<div class="chat-avatar">${isUser?'Tú':'PF'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+
+function addTypingIndicator(){
+  const container=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg';div.id='typingIndicator';
+  div.innerHTML=`<div class="chat-avatar">PF</div><div class="chat-bubble"><div class="chat-typing"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(div);container.scrollTop=container.scrollHeight;
+}
+
+function removeTypingIndicator(){const el=document.getElementById('typingIndicator');if(el)el.remove();}
+
+function actualizarBadgePreguntas() {
+  const badge = document.getElementById('preguntasBadge');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+  if (!badge) return;
+  if (preguntasRestantes === 3) {
+    badge.textContent = '3 preguntas disponibles';
+    badge.className = 'chat-preguntas-badge';
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.placeholder = 'Escribe tu pregunta...';
+    const agotado = document.getElementById('chatAgotado');
+    if (agotado) agotado.remove();
+  } else if (preguntasRestantes === 2) {
+    badge.textContent = '2 preguntas restantes';
+    badge.className = 'chat-preguntas-badge';
+  } else if (preguntasRestantes === 1) {
+    badge.textContent = '1 pregunta restante';
+    badge.className = 'chat-preguntas-badge warning';
+  } else {
+    badge.textContent = 'Sin preguntas disponibles';
+    badge.className = 'chat-preguntas-badge agotado';
+    input.disabled = true;
+    sendBtn.disabled = true;
+    input.placeholder = 'Límite de preguntas alcanzado';
+    // Mostrar mensaje de bloqueo suave
+    const body = document.querySelector('.chat-body');
+    if (body && !document.getElementById('chatAgotado')) {
+      const div = document.createElement('div');
+      div.id = 'chatAgotado';
+      div.className = 'chat-agotado-msg';
+      div.innerHTML = `<strong>Has usado tus 3 preguntas incluidas</strong>Para continuar consultando sobre tu análisis, adquiere un nuevo análisis.<button onclick="openPaquetes()">Ver paquetes</button>`;
+      body.appendChild(div);
+    }
+  }
+}
+
+async function sendChatMessage(){
+  const input=document.getElementById('chatInput');
+  const sendBtn=document.getElementById('chatSend');
+  const text=input.value.trim();
+  if(!text||!chatContext||preguntasRestantes<=0)return;
+  input.value='';input.style.height='auto';sendBtn.disabled=true;
+  addChatMessage('user',text);
+  chatHistory.push({role:'user',content:text});
+  addTypingIndicator();
+  try {
+    const system=`Eres un experto en psicología facial basado en el método del Dr. Louis Corman y evidencia científica contemporánea. Responde preguntas sobre el análisis realizado de forma cálida, profunda y accesible. Máximo 4 párrafos. Lenguaje neutro en género. IMPORTANTE: Cada respuesta debe hacer referencia a rasgos faciales concretos observados en el análisis. No respondas de forma genérica, sino siempre conectando con los rasgos específicos del rostro de esta persona.
+
+ANÁLISIS:
+Zona mental: ${chatContext.mental.nombre} — ${chatContext.mental.descripcion}
+Zona emocional: ${chatContext.emocional.nombre} — ${chatContext.emocional.descripcion}
+Zona instintiva: ${chatContext.instintiva.nombre} — ${chatContext.instintiva.descripcion}
+Perfil: ${(chatContext.sintesis.perfil||'').replace(/\|\|\|/g,' ')}
+Puntos fuertes: ${(chatContext.sintesis.puntos_fuertes||[]).join(', ')}
+A trabajar: ${(chatContext.sintesis.puntos_debiles||[]).join(', ')}
+Amor: ${chatContext.sintesis.amor_intro||''}`;
+
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system,
+        messages:chatHistory.map(m=>({role:m.role,content:m.content}))
+      })
+    });
+    if(!r.ok)throw new Error('Error');
+    const d=await r.json();
+    const reply=d.content.map(b=>b.text||'').join('').trim();
+    removeTypingIndicator();addChatMessage('assistant',reply);
+    chatHistory.push({role:'assistant',content:reply});
+    preguntasRestantes--;
+    actualizarBadgePreguntas();
+  } catch(err){removeTypingIndicator();addChatMessage('assistant','Lo siento, hubo un problema. Intenta de nuevo.');}
+  sendBtn.disabled=false;input.focus();
+}
+
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}});
+document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+
+function descargarPDF() {
+  if (!chatContext) { alert('Primero genera el perfil completo.'); return; }
+  try {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const gold = [155, 123, 74];
+  const ink = [28, 26, 23];
+  const ink3 = [138, 133, 125];
+  const W = 210;
+  const margin = 20;
+  const maxW = W - margin * 2;
+  let y = 0;
+
+  function addPage() { doc.addPage(); y = 20; }
+
+  function checkY(needed) { if (y + needed > 280) addPage(); }
+
+  function wrapText(text, x, startY, maxWidth, lineH, fontSize, color) {
+    doc.setFontSize(fontSize);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text, maxWidth);
+    lines.forEach(line => {
+      checkY(lineH);
+      doc.text(line, x, y);
+      y += lineH;
+    });
+  }
+
+  // ── PORTADA ──
+  // Fondo crema elegante
+  doc.setFillColor(250, 248, 245);
+  doc.rect(0, 0, W, 297, 'F');
+
+  // Franja dorada superior
+  doc.setFillColor(...gold);
+  doc.rect(0, 0, W, 3, 'F');
+
+  // Franja dorada inferior
+  doc.rect(0, 294, W, 3, 'F');
+
+  // Línea dorada decorativa
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(0.3);
+  doc.line(margin, 18, W - margin, 18);
+
+  // Eyebrow
+  doc.setFontSize(8);
+  doc.setTextColor(155, 123, 74);
+  doc.text('PSICOLOGÍA FACIAL · MORFOPSICOLOGÍA', margin, 14);
+
+  // Foto del rostro (lado derecho de la portada)
+  if (imageBase64 && imageMediaType) {
+    try {
+      const imgFormat = imageMediaType.includes('png') ? 'PNG' : 'JPEG';
+      // Foto en lado derecho, recortada como cuadrado
+      doc.addImage('data:' + imageMediaType + ';base64,' + imageBase64, imgFormat, W/2 + 5, 25, 80, 100, undefined, 'MEDIUM');
+      // Overlay semitransparente sobre la foto
+      doc.setFillColor(250, 248, 245);
+      doc.setGState(new doc.GState({opacity: 0.15}));
+      doc.rect(W/2 + 5, 25, 80, 100, 'F');
+      doc.setGState(new doc.GState({opacity: 1}));
+    } catch(imgErr) { /* Si falla la imagen, continuar sin ella */ }
+  }
+
+  // Título
+  doc.setFontSize(32);
+  doc.setTextColor(28, 26, 23);
+  doc.text('Lo que tu', margin, 50);
+  doc.text('rostro revela', margin, 64);
+  doc.setTextColor(...gold);
+  doc.text('de ti', margin, 78);
+
+  // Línea separadora
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(0.5);
+  doc.line(margin, 88, margin + 40, 88);
+
+  // Intro / esencia
+  doc.setFontSize(11);
+  doc.setTextColor(28, 26, 23);
+  const introLines = doc.splitTextToSize(chatContext.sintesis.intro || '', W/2 - margin - 5);
+  doc.text(introLines, margin, 98);
+
+  // Biotipo si existe
+  if (chatContext.biotipo) {
+    doc.setFontSize(8);
+    doc.setTextColor(155, 123, 74);
+    doc.text('BIOTIPO', margin, 130);
+    doc.setTextColor(74, 70, 64);
+    doc.setFontSize(9);
+    const bioLines = doc.splitTextToSize(chatContext.biotipo, W/2 - margin - 5);
+    doc.text(bioLines, margin, 137);
+  }
+
+  // Tres zonas como badges
+  const zonasBadge = [
+    { label: 'MENTAL', color: [58, 90, 122] },
+    { label: 'EMOCIONAL', color: [74, 122, 90] },
+    { label: 'INSTINTIVA', color: [139, 90, 58] },
+  ];
+  let badgeY = 200;
+  doc.setFontSize(7);
+  zonasBadge.forEach((z, i) => {
+    doc.setFillColor(...z.color);
+    doc.roundedRect(margin + i * 58, badgeY, 50, 12, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.text(z.label, margin + i * 58 + 25, badgeY + 7.5, { align: 'center' });
+  });
+
+  // Pie de portada
+  doc.setFontSize(8);
+  doc.setTextColor(184, 179, 171);
+  doc.text('Morfopsicología clínica · Orientativo, no es diagnóstico', margin, 280);
+  doc.text(`Generado el ${new Date().toLocaleDateString('es-CL')}`, W - margin, 280, { align: 'right' });
+
+  // ── PÁGINA 2: PERFIL ──
+  doc.addPage();
+  y = 20;
+
+  doc.setFillColor(...gold);
+  doc.rect(margin, y, 24, 0.5, 'F');
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(...gold);
+  doc.text('PERFIL DE PERSONALIDAD', margin, y); y += 10;
+
+  const parrafos = (chatContext.sintesis.perfil || '').split('|||').map(p => p.trim()).filter(Boolean);
+  parrafos.forEach(p => {
+    wrapText(p, margin, y, maxW, 6, 10, ink);
+    y += 4;
+  });
+
+  // ── ZONAS ──
+  y += 6; checkY(40);
+  doc.setFillColor(...gold);
+  doc.rect(margin, y, 24, 0.5, 'F');
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(...gold);
+  doc.text('LAS TRES ZONAS', margin, y); y += 10;
+
+  const zonas = [
+    { label: 'ZONA CEREBRAL', data: chatContext.mental, color: [58, 90, 122] },
+    { label: 'ZONA AFECTIVA', data: chatContext.emocional, color: [74, 122, 90] },
+    { label: 'ZONA INSTINTIVA', data: chatContext.instintiva, color: [139, 90, 58] },
+  ];
+
+  zonas.forEach(z => {
+    checkY(30);
+    doc.setFontSize(8); doc.setTextColor(...z.color);
+    doc.text(z.label, margin, y); y += 5;
+    doc.setFontSize(11); doc.setTextColor(...ink);
+    doc.text(z.data.nombre || '', margin, y); y += 6;
+    wrapText(z.data.descripcion || '', margin, y, maxW, 5.5, 9, ink3);
+    y += 4;
+
+    if (z.data.rasgos && z.data.rasgos.length) {
+      z.data.rasgos.forEach(r => {
+        checkY(12);
+        doc.setFontSize(8); doc.setTextColor(...z.color);
+        doc.text('· ' + r.rasgo, margin + 4, y); y += 4.5;
+        wrapText(r.interpretacion, margin + 8, y, maxW - 8, 5, 8.5, ink3);
+        y += 2;
+      });
+    }
+    y += 6;
+  });
+
+  // ── FORTALEZAS Y LIMITACIONES ──
+  checkY(30);
+  doc.setFillColor(...gold);
+  doc.rect(margin, y, 24, 0.5, 'F');
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(...gold);
+  doc.text('PUNTOS FUERTES', margin, y); y += 8;
+
+  (chatContext.sintesis.puntos_fuertes || []).forEach(p => {
+    checkY(10);
+    doc.setFontSize(9); doc.setTextColor(...ink);
+    const lines = doc.splitTextToSize('- ' + p, maxW - 4);
+    lines.forEach(line => { doc.text(line, margin + 2, y); y += 5.5; });
+    y += 1;
+  });
+
+  y += 4; checkY(30);
+  doc.setFontSize(8); doc.setTextColor(155, 90, 106);
+  doc.text('A TRABAJAR', margin, y); y += 8;
+
+  (chatContext.sintesis.puntos_debiles || []).forEach(p => {
+    checkY(10);
+    doc.setFontSize(9); doc.setTextColor(...ink);
+    const lines = doc.splitTextToSize('- ' + p, maxW - 4);
+    lines.forEach(line => { doc.text(line, margin + 2, y); y += 5.5; });
+    y += 1;
+  });
+
+  // ── AMOR ──
+  y += 6; checkY(40);
+  doc.setFillColor(...gold);
+  doc.rect(margin, y, 24, 0.5, 'F');
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(155, 90, 106);
+  doc.text('AMOR Y VÍNCULOS', margin, y); y += 10;
+
+  wrapText(chatContext.sintesis.amor_intro || '', margin, y, maxW, 5.5, 9, ink3);
+  y += 6;
+
+  const amorItems = [
+    { label: 'Necesita', value: chatContext.sintesis.amor_necesita },
+    { label: 'Compatible con', value: chatContext.sintesis.amor_compatible },
+    { label: 'Conflicto con', value: chatContext.sintesis.amor_conflicto },
+  ];
+  amorItems.forEach(item => {
+    if (!item.value) return;
+    checkY(16);
+    doc.setFontSize(8); doc.setTextColor(...gold);
+    doc.text(item.label.toUpperCase(), margin, y); y += 5;
+    wrapText(item.value, margin, y, maxW, 5.5, 9, ink3);
+    y += 6;
+  });
+
+  // ── PROFESIONAL ──
+  y += 4; checkY(40);
+  doc.setFillColor(...gold);
+  doc.rect(margin, y, 24, 0.5, 'F');
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(58, 90, 122);
+  doc.text('ORIENTACIÓN PROFESIONAL', margin, y); y += 10;
+
+  wrapText(chatContext.sintesis.profesional_intro || '', margin, y, maxW, 5.5, 9, ink3);
+  y += 6;
+
+  (chatContext.sintesis.profesiones || []).forEach(p => {
+    checkY(10);
+    doc.setFontSize(8); doc.setTextColor(...gold);
+    doc.text(p.categoria.toUpperCase(), margin + 2, y);
+    doc.setTextColor(...ink);
+    doc.text('  ' + p.titulo, margin + 2 + doc.getTextWidth(p.categoria.toUpperCase()) + 2, y);
+    y += 6;
+  });
+
+  // ── PIE DE PÁGINA en todas las páginas ──
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(...ink3);
+    doc.text('Psicología Facial · Análisis basado en el método del Dr. Louis Corman · Orientativo, no es diagnóstico clínico', margin, 291);
+    doc.text(`${i} / ${totalPages}`, W - margin, 291, { align: 'right' });
+  }
+
+  doc.save('analisis-psicologia-facial.pdf');
+  } catch(e) { alert('Error generando PDF: ' + e.message); }
+}
+
+function resetApp(){
+  window.scrollTo({top:0,behavior:'smooth'});
+  // NO borrar resultados, solo resetear la zona de foto
+  renderUploadZone(null);
+  imageBase64=null; imageMediaType=null;
+  analyzeBtn.disabled=true; analyzeBtn.style.display='block';
+  errorBox.classList.remove('visible');
+  // Mantener resultados visibles
+  results.classList.add('visible');
+}
+</script>
+<!-- MODAL CÓMO FUNCIONA -->
+<div id="comoFuncionaOverlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,0.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;" onclick="closeComoFunciona(event)">
+  <div style="background:var(--white);border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:2rem;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div style="font-size:11px;letter-spacing:0.12em;color:var(--gold);font-weight:500;">CÓMO FUNCIONA</div>
+      <button onclick="closeComoFunciona()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3);line-height:1;padding:4px 8px;">×</button>
+    </div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:1rem;color:var(--ink);">Morfopsicología clínica</h2>
+    <p style="font-size:13px;color:var(--ink2);line-height:1.8;margin-bottom:1rem;">La morfopsicología es una disciplina que establece correlación entre los rasgos del rostro y los rasgos del carácter. Desarrollada por el Dr. Louis Corman en el siglo XX y refinada por investigaciones contemporáneas en psicología facial, parte de que el rostro refleja cómo el sistema nervioso de una persona procesa y responde al mundo.</p>
+    
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">LAS TRES ZONAS</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        <strong>Zona mental</strong> (frente, ojos, cejas) — cómo piensas y procesas la realidad.<br>
+        <strong>Zona emocional</strong> (pómulos, nariz) — cómo sientes y te relacionas.<br>
+        <strong>Zona instintiva</strong> (boca, mandíbula, mentón) — tu energía vital y cómo actúas.
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">BIOTIPO Y TONICIDAD</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        El análisis evalúa si eres de tipo <strong>dilatado</strong> (expansivo, abierto al entorno) o <strong>retraído</strong> (concentrado en el mundo interno), y si tu tono vital es <strong>hipertónico</strong> (tenso, controlado) o <strong>hipotónico</strong> (relajado, adaptable). Estas variables cambian la interpretación de cada rasgo.
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:0.1em;color:var(--gold);margin-bottom:0.5rem;">ASIMETRÍA E INDICADORES</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.8;">
+        El lado derecho del rostro refleja tu yo social y consciente. El izquierdo, tu mundo íntimo e inconsciente. Las asimetrías revelan tensiones internas. El análisis también detecta patrones que pueden indicar tendencias emocionales — siempre como orientación, nunca como diagnóstico.
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink4);font-style:italic;text-align:center;border-top:1px solid var(--border);padding-top:1rem;">"Comprender y nunca juzgar" — Dr. Louis Corman</p>
+  </div>
+</div>
+
+<script>
+function openComoFunciona() {
+  document.getElementById('comoFuncionaOverlay').style.display = 'flex';
+}
+function closeComoFunciona(e) {
+  if (!e || e.target === document.getElementById('comoFuncionaOverlay')) {
+    document.getElementById('comoFuncionaOverlay').style.display = 'none';
+  }
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+</script>
+</body>
+</html>
