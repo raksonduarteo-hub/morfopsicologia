@@ -13,7 +13,14 @@
 <meta name="apple-mobile-web-app-title" content="Psicología Facial">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <!-- v13-direct-2026 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Cargar jsPDF de forma compatible con Safari
+window._jsPDFReady = false;
+var jsPDFScript = document.createElement('script');
+jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+jsPDFScript.onload = function() { window._jsPDFReady = true; };
+document.head.appendChild(jsPDFScript);
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -1714,10 +1721,10 @@ document.getElementById('chatInput').addEventListener('input',function(){this.st
 
 function descargarPDF() {
   if (!chatContext) { alert('Primero genera el perfil completo.'); return; }
+  if (!window._jsPDFReady) { alert('Librería PDF cargando, intenta en unos segundos.'); return; }
   try {
-  // jsPDF puede estar en window.jspdf.jsPDF o window.jsPDF
-  const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-  if (!jsPDFClass) { alert('Librería PDF no disponible. Recarga la página.'); return; }
+  const jsPDFClass = window.jspdf && window.jspdf.jsPDF;
+  if (!jsPDFClass) { alert('Error cargando PDF. Recarga la página e intenta de nuevo.'); return; }
   const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const gold = [155, 123, 74];
   const ink = [28, 26, 23];
