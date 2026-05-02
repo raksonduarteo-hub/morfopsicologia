@@ -1980,12 +1980,13 @@ function descargarPDF() {
   y += 6;
 
   (chatContext.sintesis.profesiones || []).forEach(p => {
-    checkY(10);
+    checkY(14);
     doc.setFontSize(8); doc.setTextColor(...gold);
-    doc.text(p.categoria.toUpperCase(), margin + 2, y);
-    doc.setTextColor(...ink);
-    doc.text('  ' + p.titulo, margin + 2 + doc.getTextWidth(p.categoria.toUpperCase()) + 2, y);
-    y += 6;
+    doc.text(p.categoria.toUpperCase(), margin + 2, y); y += 5;
+    doc.setFontSize(9); doc.setTextColor(...ink);
+    const tituloLines = doc.splitTextToSize(p.titulo, maxW - 4);
+    tituloLines.forEach(line => { checkY(6); doc.text(line, margin + 2, y); y += 5.5; });
+    y += 2;
   });
 
   // ── PIE DE PÁGINA en todas las páginas ──
