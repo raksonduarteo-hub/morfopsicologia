@@ -2107,6 +2107,12 @@ function resetApp(){
 
 <script>
 function loginConGoogle() {
+  // Guardar imagen si existe antes de ir a Google
+  if (imageBase64) {
+    sessionStorage.setItem('pf_img_b64', imageBase64);
+    sessionStorage.setItem('pf_img_type', imageMediaType);
+    if (window._imagePdfDataUrl) sessionStorage.setItem('pf_img_pdf', window._imagePdfDataUrl);
+  }
   const supabaseUrl = 'https://qsgrqelgpgztsppvjyly.supabase.co';
   const redirectTo = encodeURIComponent('https://morfopsicologia-production.up.railway.app');
   window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
@@ -2123,6 +2129,21 @@ async function handleAuthCallback() {
   localStorage.setItem('pf_token', _authToken);
   await cargarPerfil();
   window.history.replaceState({}, document.title, '/');
+
+  // Restaurar imagen si había una antes de ir a Google
+  const savedB64 = sessionStorage.getItem('pf_img_b64');
+  const savedType = sessionStorage.getItem('pf_img_type');
+  if (savedB64 && savedType) {
+    imageBase64 = savedB64;
+    imageMediaType = savedType;
+    window._imagePdfDataUrl = sessionStorage.getItem('pf_img_pdf') || null;
+    const dataUrl = `data:${savedType};base64,${savedB64}`;
+    renderUploadZone(dataUrl);
+    analyzeBtn.disabled = false;
+    sessionStorage.removeItem('pf_img_b64');
+    sessionStorage.removeItem('pf_img_type');
+    sessionStorage.removeItem('pf_img_pdf');
+  }
 }
 
 handleAuthCallback();
