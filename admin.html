@@ -237,7 +237,34 @@ select option { background: var(--bg3); }
       </div>
     </div>
 
+    
     <div class="card">
+      <div class="card-title">Subir PDF</div>
+      <div id="pdfMsg"></div>
+      <div class="field">
+        <label>Título del libro o documento</label>
+        <input type="text" id="pdfTitulo" placeholder="ej: Morfopsicología — Louis Corman">
+      </div>
+      <div class="field">
+        <label>Categoría</label>
+        <select id="pdfCategoria">
+          <option value="general">General</option>
+          <option value="biotipo">Biotipo</option>
+          <option value="zona_mental">Zona Mental</option>
+          <option value="zona_emocional">Zona Emocional</option>
+          <option value="zona_instintiva">Zona Instintiva</option>
+          <option value="indicadores">Indicadores Psicopatológicos</option>
+          <option value="amor">Amor y Vínculos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Archivo PDF</label>
+        <input type="file" id="pdfFile" accept=".pdf" style="padding:8px;cursor:pointer;">
+      </div>
+      <button class="btn-primary" onclick="subirPDF()" id="btnPdf">Subir y extraer texto</button>
+    </div>
+
+<div class="card">
       <div class="card-title">Agregar conocimiento</div>
       <div id="formMsg"></div>
       <div class="field">
@@ -333,6 +360,49 @@ function cerrarSesion() {
 }
 
 // ── Conocimiento ──
+
+async function subirPDF() {
+  const file = document.getElementById('pdfFile').files[0];
+  const titulo = document.getElementById('pdfTitulo').value.trim();
+  const categoria = document.getElementById('pdfCategoria').value;
+  const msgEl = document.getElementById('pdfMsg');
+  const btn = document.getElementById('btnPdf');
+
+  if (!file) { msgEl.innerHTML = '<div class="msg msg-err">Selecciona un archivo PDF.</div>'; return; }
+  if (!titulo) { msgEl.innerHTML = '<div class="msg msg-err">Escribe un título para el documento.</div>'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Procesando...';
+  msgEl.innerHTML = '<div class="msg" style="background:rgba(155,123,74,0.1);color:#C4A06A;">Extrayendo texto del PDF, puede tardar unos segundos...</div>';
+
+  const formData = new FormData();
+  formData.append('titulo', titulo);
+  formData.append('categoria', categoria);
+  formData.append('file', file);
+
+  try {
+    const r = await fetch('/admin/upload-pdf', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + _token },
+      body: formData
+    });
+    const data = await r.json();
+    if (data.success) {
+      msgEl.innerHTML = `<div class="msg msg-ok">✓ PDF procesado correctamente — ${data.partes} entrada(s) guardada(s), ${data.caracteres.toLocaleString()} caracteres extraídos.</div>`;
+      document.getElementById('pdfTitulo').value = '';
+      document.getElementById('pdfFile').value = '';
+      cargarConocimiento();
+      setTimeout(() => msgEl.innerHTML = '', 5000);
+    } else {
+      msgEl.innerHTML = `<div class="msg msg-err">${data.error || 'Error al procesar PDF.'}</div>`;
+    }
+  } catch(e) {
+    msgEl.innerHTML = '<div class="msg msg-err">Error de conexión.</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Subir y extraer texto';
+}
+
 async function cargarConocimiento() {
   try {
     const r = await fetch('/admin/conocimiento', { headers: { 'Authorization': 'Bearer ' + _token } });

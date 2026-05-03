@@ -8,7 +8,6 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qsgrqelgpgztsppvjyly.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZ3JxZWxncGd6dHNwcHZqeWx5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzczMDgxMSwiZXhwIjoyMDkzMzA2ODExfQ.x2TqoawD8w7SxNMZ5DWWdKA4te2IJjnG_cxn5XXMqPI';
 
-// Helper para llamadas a Supabase
 function supabaseFetch(endpoint, method, body, token) {
   return new Promise((resolve, reject) => {
     const url = new URL(SUPABASE_URL + endpoint);
@@ -19,14 +18,7 @@ function supabaseFetch(endpoint, method, body, token) {
       'Authorization': token ? `Bearer ${token}` : `Bearer ${SUPABASE_KEY}`,
     };
     if (postData) headers['Content-Length'] = Buffer.byteLength(postData);
-
-    const options = {
-      hostname: url.hostname,
-      path: url.pathname + url.search,
-      method,
-      headers
-    };
-
+    const options = { hostname: url.hostname, path: url.pathname + url.search, method, headers };
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -41,20 +33,13 @@ function supabaseFetch(endpoint, method, body, token) {
   });
 }
 
-// Helper para auth de Supabase
 function supabaseAuth(endpoint, body) {
   return new Promise((resolve, reject) => {
     const url = new URL(SUPABASE_URL + '/auth/v1' + endpoint);
     const postData = JSON.stringify(body);
     const options = {
-      hostname: url.hostname,
-      path: url.pathname,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Content-Length': Buffer.byteLength(postData)
-      }
+      hostname: url.hostname, path: url.pathname, method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Content-Length': Buffer.byteLength(postData) }
     };
     const req = https.request(options, (res) => {
       let data = '';
@@ -72,28 +57,23 @@ function supabaseAuth(endpoint, body) {
 
 const ADMIN_EMAIL = 'rakson.duarteo@gmail.com';
 
-// Verificar si el token corresponde al admin
 function esAdmin(token) {
   if (!token) return false;
   try {
-    // Leer email directo del JWT sin consultar Supabase
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
     const email = payload.email || (payload.user_metadata && payload.user_metadata.email) || '';
     return email === ADMIN_EMAIL;
   } catch(e) { return false; }
 }
 
-// Cargar conocimiento activo para el análisis
 async function cargarConocimiento() {
   try {
-    const serviceKey = SUPABASE_KEY;
-    const r = await supabaseFetch('/rest/v1/conocimiento?select=titulo,contenido,categoria&activo=eq.true&order=categoria', 'GET', null, serviceKey);
+    const r = await supabaseFetch('/rest/v1/conocimiento?select=titulo,contenido,categoria&activo=eq.true&order=categoria', 'GET', null, SUPABASE_KEY);
     if (r.data && r.data.length > 0) return r.data;
   } catch(e) {}
   return [];
 }
 
-// Helper para leer el body de la request
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = '';
@@ -105,11 +85,47 @@ function parseBody(req) {
   });
 }
 
+function parseRawBody(req) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+}
+
+async function extractPdfText(buffer) {
+  const pdfParse = require('pdf-parse');
+  const data = await pdfParse(buffer);
+  return data.text || '';
+}
+
+function parseMultipart(buffer, boundary) {
+  const parts = [];
+  const boundaryBuf = Buffer.from('--' + boundary);
+  let start = 0;
+  while (start < buffer.length) {
+    const boundaryIdx = buffer.indexOf(boundaryBuf, start);
+    if (boundaryIdx === -1) break;
+    const headerStart = boundaryIdx + boundaryBuf.length + 2;
+    const headerEnd = buffer.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+    if (headerEnd === -1) break;
+    const headers = buffer.slice(headerStart, headerEnd).toString();
+    const contentStart = headerEnd + 4;
+    const nextBoundary = buffer.indexOf(boundaryBuf, contentStart);
+    if (nextBoundary === -1) break;
+    const content = buffer.slice(contentStart, nextBoundary - 2);
+    const nameMatch = headers.match(/name="([^"]+)"/);
+    const filenameMatch = headers.match(/filename="([^"]+)"/);
+    parts.push({ name: nameMatch ? nameMatch[1] : '', filename: filenameMatch ? filenameMatch[1] : null, content });
+    start = nextBoundary;
+  }
+  return parts;
+}
+
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
   const json = (data, status = 200) => {
@@ -117,33 +133,25 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(data));
   };
 
-  // ── AUTH: Callback de Google OAuth ──
   if (req.method === 'POST' && req.url === '/auth/callback') {
     const { code } = await parseBody(req);
     const result = await supabaseAuth('/token?grant_type=pkce', { auth_code: code });
     return json(result.data, result.status);
   }
-
-  // ── AUTH: Registro ──
   if (req.method === 'POST' && req.url === '/auth/register') {
     const { email, password } = await parseBody(req);
     const result = await supabaseAuth('/signup', { email, password });
     return json(result.data, result.status);
   }
-
-  // ── AUTH: Login ──
   if (req.method === 'POST' && req.url === '/auth/login') {
     const { email, password } = await parseBody(req);
     const result = await supabaseAuth('/token?grant_type=password', { email, password });
     return json(result.data, result.status);
   }
-
-  // ── AUTH: Logout ──
   if (req.method === 'POST' && req.url === '/auth/logout') {
     return json({ success: true });
   }
 
-  // ── PERFIL: Obtener créditos ──
   if (req.method === 'GET' && req.url === '/api/perfil') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     if (!token) return json({ error: 'No autenticado' }, 401);
@@ -152,7 +160,6 @@ const server = http.createServer(async (req, res) => {
     return json({ creditos: 0 });
   }
 
-  // ── ADMIN: Panel ──
   if (req.method === 'GET' && req.url === '/admin') {
     const adminPath = path.join(__dirname, 'admin.html');
     fs.readFile(adminPath, (err, data) => {
@@ -163,115 +170,118 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ── ADMIN: Listar conocimiento ──
   if (req.method === 'GET' && req.url === '/admin/conocimiento') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    if (!esAdmin(token)) return json({ error: 'No autorizado' }, 403);
     const r = await supabaseFetch('/rest/v1/conocimiento?select=*&order=created_at.desc', 'GET', null, SUPABASE_KEY);
     return json(r.data || []);
   }
 
-  // ── ADMIN: Agregar conocimiento ──
   if (req.method === 'POST' && req.url === '/admin/conocimiento') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    if (!esAdmin(token)) return json({ error: 'No autorizado' }, 403);
     const body = await parseBody(req);
-    const r = await supabaseFetch('/rest/v1/conocimiento', 'POST', body, SUPABASE_KEY);
+    await supabaseFetch('/rest/v1/conocimiento', 'POST', body, SUPABASE_KEY);
     return json({ success: true }, 201);
   }
 
-  // ── ADMIN: Actualizar conocimiento ──
+  // ── ADMIN: Subir PDF ──
+  if (req.method === 'POST' && req.url === '/admin/upload-pdf') {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    try {
+      const contentType = req.headers['content-type'] || '';
+      const boundaryMatch = contentType.match(/boundary=(.+)/);
+      if (!boundaryMatch) return json({ error: 'Formato inválido' }, 400);
+      const rawBody = await parseRawBody(req);
+      const parts = parseMultipart(rawBody, boundaryMatch[1]);
+      const filePart = parts.find(p => p.filename);
+      const tituloPart = parts.find(p => p.name === 'titulo');
+      const categoriaPart = parts.find(p => p.name === 'categoria');
+      if (!filePart) return json({ error: 'No se recibió archivo' }, 400);
+      const titulo = tituloPart ? tituloPart.content.toString().trim() : (filePart.filename || 'PDF sin título');
+      const categoria = categoriaPart ? categoriaPart.content.toString().trim() : 'general';
+      const texto = await extractPdfText(filePart.content);
+      if (!texto || texto.trim().length < 10) return json({ error: 'No se pudo extraer texto. ¿Es un PDF escaneado?' }, 400);
+      const chunkSize = 3000;
+      const chunks = [];
+      for (let i = 0; i < texto.length; i += chunkSize) chunks.push(texto.slice(i, i + chunkSize));
+      for (let i = 0; i < chunks.length; i++) {
+        await supabaseFetch('/rest/v1/conocimiento', 'POST', {
+          titulo: chunks.length > 1 ? `${titulo} (parte ${i+1}/${chunks.length})` : titulo,
+          contenido: chunks[i].trim(),
+          categoria,
+          activo: true
+        }, SUPABASE_KEY);
+      }
+      return json({ success: true, partes: chunks.length, caracteres: texto.length });
+    } catch(e) {
+      return json({ error: e.message }, 500);
+    }
+  }
+
   if (req.method === 'PATCH' && req.url.startsWith('/admin/conocimiento/')) {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    if (!esAdmin(token)) return json({ error: 'No autorizado' }, 403);
     const id = req.url.split('/').pop();
     const body = await parseBody(req);
     await supabaseFetch(`/rest/v1/conocimiento?id=eq.${id}`, 'PATCH', body, SUPABASE_KEY);
     return json({ success: true });
   }
 
-  // ── ADMIN: Eliminar conocimiento ──
   if (req.method === 'DELETE' && req.url.startsWith('/admin/conocimiento/')) {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!await esAdmin(token)) return json({ error: 'No autorizado' }, 403);
+    if (!esAdmin(token)) return json({ error: 'No autorizado' }, 403);
     const id = req.url.split('/').pop();
     await supabaseFetch(`/rest/v1/conocimiento?id=eq.${id}`, 'DELETE', null, SUPABASE_KEY);
     return json({ success: true });
   }
 
-  // ── ANÁLISIS: Proxy a Anthropic ──
   if (req.method === 'POST' && req.url === '/api/claude') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     if (!token) return json({ error: { message: 'Debes iniciar sesión para analizar.' } }, 401);
     if (!ANTHROPIC_API_KEY) return json({ error: { message: 'API key no configurada.' } }, 500);
-
     const body = await parseBody(req);
-
-    // Cargar conocimiento activo e inyectarlo en el prompt
     const conocimiento = await cargarConocimiento();
     if (conocimiento.length > 0 && body.messages) {
       const contexto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
       const ultimoMsg = body.messages[body.messages.length - 1];
       if (ultimoMsg && Array.isArray(ultimoMsg.content)) {
         const textoIdx = ultimoMsg.content.findIndex(c => c.type === 'text');
-        if (textoIdx >= 0) {
-          ultimoMsg.content[textoIdx].text = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content[textoIdx].text}`;
-        }
+        if (textoIdx >= 0) ultimoMsg.content[textoIdx].text = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content[textoIdx].text}`;
       } else if (ultimoMsg && typeof ultimoMsg.content === 'string') {
         ultimoMsg.content = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content}`;
       }
     }
-
     const postData = JSON.stringify(body);
-
     return new Promise((resolve) => {
       const options = {
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'Content-Length': Buffer.byteLength(postData)
-        }
+        hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Length': Buffer.byteLength(postData) }
       };
       const apiReq = https.request(options, (apiRes) => {
         let data = '';
         apiRes.on('data', chunk => data += chunk);
-        apiRes.on('end', () => {
-          res.writeHead(apiRes.statusCode, { 'Content-Type': 'application/json' });
-          res.end(data);
-          resolve();
-        });
+        apiRes.on('end', () => { res.writeHead(apiRes.statusCode, { 'Content-Type': 'application/json' }); res.end(data); resolve(); });
       });
-      apiReq.on('error', (err) => {
-        json({ error: { message: err.message } }, 500);
-        resolve();
-      });
+      apiReq.on('error', (err) => { json({ error: { message: err.message } }, 500); resolve(); });
       apiReq.write(postData);
       apiReq.end();
     });
   }
 
-  // ── ANÁLISIS: Guardar en Supabase ──
   if (req.method === 'POST' && req.url === '/api/guardar-analisis') {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     if (!token) return json({ error: 'No autenticado' }, 401);
     const body = await parseBody(req);
-    const result = await supabaseFetch('/rest/v1/analisis', 'POST', body, token);
+    await supabaseFetch('/rest/v1/analisis', 'POST', body, token);
     return json({ success: true }, 201);
   }
 
-  // ── Servir archivos estáticos ──
   let filePath = req.url === '/' ? '/index.html' : req.url;
   filePath = path.join(__dirname, filePath);
   const ext = path.extname(filePath);
-  const mimeTypes = {
-    '.html': 'text/html', '.js': 'application/javascript',
-    '.json': 'application/json', '.png': 'image/png',
-    '.jpg': 'image/jpeg', '.css': 'text/css'
-  };
+  const mimeTypes = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.css': 'text/css' };
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'text/plain' });
