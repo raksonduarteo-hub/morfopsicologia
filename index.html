@@ -1676,29 +1676,6 @@ analyzeBtn.addEventListener('click',async()=>{
   try {
     setStep('step1','active');
 
-    // Validar que la imagen contiene un rostro humano
-    const validHeaders = {'Content-Type':'application/json'};
-    if(_authToken) validHeaders['Authorization'] = 'Bearer ' + _authToken;
-    const validR = await fetch('/api/claude', {
-      method:'POST', headers: validHeaders,
-      body: JSON.stringify({
-        model:'claude-sonnet-4-5', max_tokens:20,
-        messages:[{role:'user', content:[
-          {type:'image', source:{type:'base64', media_type:imageMediaType, data:imageBase64}},
-          {type:'text', text:'¿Hay un rostro humano claro y de frente en esta imagen? Responde solo: SI o NO'}
-        ]}]
-      })
-    });
-    const validD = await validR.json();
-    const validReply = (validD.content||[]).map(b=>b.text||'').join('').trim().toUpperCase();
-    if(!validReply.includes('SI')) {
-      loadingSection.classList.remove('visible');
-      analyzeBtn.style.display='block';
-      analyzeBtn.disabled=false;
-      showError('No se detectó un rostro humano claro en la imagen. Por favor sube una foto de frente con buena iluminación.');
-      return;
-    }
-
     setStep('step1','done'); setStep('step2','active'); setStep('step3','active'); setStep('step4','active'); setStep('step5','active');
 
     const resultado = await analizarCompleto(imageBase64, imageMediaType);
@@ -2170,10 +2147,10 @@ function resetApp(){
 
 
     <!-- SECCIÓN COMPATIBILIDAD -->
-  <div id="seccionCompatibilidad" style="display:none;max-width:780px;margin:0 auto;padding:0 1.5rem 4rem;">
+  <div id="seccionCompatibilidad" style="display:none;">
 
     <!-- HERO -->
-    <div style="text-align:center;padding:0 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="text-align:center;padding:2.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2rem;">
       <div style="width:60px;height:60px;background:var(--rose-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
       </div>
@@ -2383,8 +2360,6 @@ function switchTab(tab) {
   document.getElementById('tabAnalisis').style.borderBottomColor = esAnalisis ? 'var(--gold)' : 'transparent';
   document.getElementById('tabCompat').style.color = esAnalisis ? 'var(--ink3)' : 'var(--gold)';
   document.getElementById('tabCompat').style.borderBottomColor = esAnalisis ? 'transparent' : 'var(--gold)';
-  const hero = document.querySelector('header.hero');
-  if (hero) hero.style.display = esAnalisis ? '' : 'none';
 }
 
 // ── COMPATIBILIDAD ──
