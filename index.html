@@ -2444,9 +2444,10 @@ async function analizarCompatibilidad() {
   document.getElementById('compatLoading').style.display = 'block';
   document.getElementById('compatResult').style.display = 'none';
 
-  const headers = {'Content-Type':'application/json','Authorization':'Bearer '+_authToken};
+  const headers = {'Content-Type':'application/json'};
+  if (_authToken) headers['Authorization'] = 'Bearer ' + _authToken;
 
-  const promptPerfil = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza el rostro de esta persona y devuelve SOLO un objeto JSON sin texto extra:
+  const promptPerfil = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza el rostro de esta persona y devuelve SOLO un objeto JSON válido sin texto extra, sin bloques de código markdown:
 {
   "biotipo": "dilatado/retraido/mixto",
   "tonicidad": "hipertonico/hipotonico/mixto",
@@ -2466,17 +2467,18 @@ async function analizarCompatibilidad() {
     const r1 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:800,
+        model:'claude-sonnet-4-5', max_tokens:1200,
         messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
           {type:'text', text: promptPerfil}
         ]}]
       })
     });
+    if (!r1.ok) { const e = await r1.json().catch(()=>({})); throw new Error(e.error?.message || `Error ${r1.status} al analizar foto 1`); }
     const d1 = await r1.json();
-    const raw1 = (d1.content||[]).map(b=>b.text||'').join('').trim();
+    const raw1 = (d1.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const j1s = raw1.indexOf('{'), j1e = raw1.lastIndexOf('}');
-    if(j1s===-1||j1e===-1) throw new Error('No se pudo analizar la foto 1');
+    if(j1s===-1||j1e===-1) throw new Error('Respuesta inválida al analizar la foto 1. Intenta con otra imagen.');
     const perfil1 = JSON.parse(raw1.slice(j1s,j1e+1));
 
     // PASO 2: Analizar persona 2
@@ -2485,17 +2487,18 @@ async function analizarCompatibilidad() {
     const r2 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:800,
+        model:'claude-sonnet-4-5', max_tokens:1200,
         messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
           {type:'text', text: promptPerfil}
         ]}]
       })
     });
+    if (!r2.ok) { const e = await r2.json().catch(()=>({})); throw new Error(e.error?.message || `Error ${r2.status} al analizar foto 2`); }
     const d2 = await r2.json();
-    const raw2 = (d2.content||[]).map(b=>b.text||'').join('').trim();
+    const raw2 = (d2.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const j2s = raw2.indexOf('{'), j2e = raw2.lastIndexOf('}');
-    if(j2s===-1||j2e===-1) throw new Error('No se pudo analizar la foto 2');
+    if(j2s===-1||j2e===-1) throw new Error('Respuesta inválida al analizar la foto 2. Intenta con otra imagen.');
     const perfil2 = JSON.parse(raw2.slice(j2s,j2e+1));
 
     // PASO 3: Cruzar perfiles y generar compatibilidad
@@ -2509,11 +2512,11 @@ ${JSON.stringify(perfil1, null, 2)}
 PERFIL PERSONA 2:
 ${JSON.stringify(perfil2, null, 2)}
 
-Responde SOLO con JSON puro sin texto extra:
+Responde SOLO con JSON válido puro sin texto extra, sin bloques de código markdown:
 {
   "persona1": "2 frases describiendo el perfil de personalidad",
   "persona2": "2 frases describiendo el perfil de personalidad",
-  "puntuacion": número del 1 al 100,
+  "puntuacion": 75,
   "resumen": "2-3 frases sobre la dinámica esencial entre estos perfiles",
   "armonias": ["armonía 1", "armonía 2", "armonía 3"],
   "tensiones": ["tensión 1", "tensión 2"],
@@ -2526,14 +2529,15 @@ Responde SOLO con JSON puro sin texto extra:
     const r3 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1500,
+        model:'claude-sonnet-4-5', max_tokens:1800,
         messages:[{role:'user', content: promptCompat}]
       })
     });
+    if (!r3.ok) { const e = await r3.json().catch(()=>({})); throw new Error(e.error?.message || `Error ${r3.status} al generar reporte`); }
     const d3 = await r3.json();
-    const raw3 = (d3.content||[]).map(b=>b.text||'').join('').trim();
+    const raw3 = (d3.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const j3s = raw3.indexOf('{'), j3e = raw3.lastIndexOf('}');
-    if(j3s===-1||j3e===-1) throw new Error('No se pudo generar el reporte: '+raw3.slice(0,100));
+    if(j3s===-1||j3e===-1) throw new Error('No se pudo generar el reporte: '+raw3.slice(0,200));
     const data = JSON.parse(raw3.slice(j3s,j3e+1));
 
     creditos -= 2;
