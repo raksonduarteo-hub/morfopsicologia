@@ -2170,10 +2170,10 @@ function resetApp(){
 
 
     <!-- SECCIÓN COMPATIBILIDAD -->
-  <div id="seccionCompatibilidad" style="display:none;padding:0 1.5rem 6rem;">
+  <div id="seccionCompatibilidad" style="display:none;max-width:780px;margin:0 auto;padding:0 1.5rem 4rem;">
 
     <!-- HERO -->
-    <div style="text-align:center;padding:0.3rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="text-align:center;padding:0 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;">
       <div style="width:60px;height:60px;background:var(--rose-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
       </div>
@@ -2383,6 +2383,8 @@ function switchTab(tab) {
   document.getElementById('tabAnalisis').style.borderBottomColor = esAnalisis ? 'var(--gold)' : 'transparent';
   document.getElementById('tabCompat').style.color = esAnalisis ? 'var(--ink3)' : 'var(--gold)';
   document.getElementById('tabCompat').style.borderBottomColor = esAnalisis ? 'transparent' : 'var(--gold)';
+  const hero = document.querySelector('header.hero');
+  if (hero) hero.style.display = esAnalisis ? '' : 'none';
 }
 
 // ── COMPATIBILIDAD ──
