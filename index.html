@@ -2449,7 +2449,7 @@ async function analizarCompatibilidad() {
 Para cada rostro determina: biotipo, tonicidad, zona dominante, rasgos principales.
 Luego compara ambos perfiles y genera el reporte.
 
-Responde ÚNICAMENTE en JSON con esta estructura:
+Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, sin markdown, sin explicaciones. Solo el JSON puro con esta estructura exacta:
 {
   "persona1": "descripción breve del perfil morfopsicológico (2 frases)",
   "persona2": "descripción breve del perfil morfopsicológico (2 frases)",
@@ -2562,7 +2562,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
 
     document.getElementById('compatResult').style.display = 'block';
   } catch(e) {
-    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: ' + e.message + '</div>';
+    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: " + e.message + "</div>';
     document.getElementById('compatResult').style.display = 'block';
     document.getElementById('compatBtn').disabled = false;
   }
