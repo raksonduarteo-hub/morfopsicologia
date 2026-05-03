@@ -5,8 +5,8 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qsgrqelgpgztsppvjyly.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZ3JxZWxncGd6dHNwcHZqeWx5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzczMDgxMSwiZXhwIjoyMDkzMzA2ODExfQ.x2TqoawD8w7SxNMZ5DWWdKA4te2IJjnG_cxn5XXMqPI';
 
 // Helper para llamadas a Supabase
 function supabaseFetch(endpoint, method, body, token) {
