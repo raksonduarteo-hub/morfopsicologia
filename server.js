@@ -76,10 +76,15 @@ async function cargarConocimiento() {
 
 function parseBody(req) {
   return new Promise((resolve) => {
-    let body = '';
-    req.on('data', chunk => body += chunk);
+    const chunks = [];
+    let size = 0;
+    req.on('data', chunk => {
+      chunks.push(chunk);
+      size += chunk.length;
+      if (size > 50 * 1024 * 1024) req.destroy(); // 50MB max
+    });
     req.on('end', () => {
-      try { resolve(JSON.parse(body)); }
+      try { resolve(JSON.parse(Buffer.concat(chunks).toString())); }
       catch(e) { resolve({}); }
     });
   });
