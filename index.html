@@ -2444,59 +2444,111 @@ async function analizarCompatibilidad() {
   document.getElementById('compatLoading').style.display = 'block';
   document.getElementById('compatResult').style.display = 'none';
 
-  const prompt = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza los DOS rostros que se te presentan y genera un reporte de compatibilidad de personalidad.
+  const headers = {'Content-Type':'application/json','Authorization':'Bearer '+_authToken};
 
-Para cada rostro determina: biotipo, tonicidad, zona dominante, rasgos principales.
-Luego compara ambos perfiles y genera el reporte.
-
-Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, sin markdown, sin explicaciones. Solo el JSON puro con esta estructura exacta:
+  const promptPerfil = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza el rostro de esta persona y devuelve SOLO un objeto JSON sin texto extra:
 {
-  "persona1": "descripción breve del perfil morfopsicológico (2 frases)",
-  "persona2": "descripción breve del perfil morfopsicológico (2 frases)",
-  "puntuacion": número del 1 al 100 que indica compatibilidad global,
-  "resumen": "2-3 frases que capturen la dinámica esencial entre estos dos perfiles",
-  "armonias": ["punto de armonía 1", "punto de armonía 2", "punto de armonía 3"],
-  "tensiones": ["fuente de tensión 1", "fuente de tensión 2"],
-  "dinamica_amor": "2-3 frases sobre cómo sería la relación romántica entre estos perfiles",
-  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos",
-  "consejo": "1 consejo concreto y específico para que esta combinación funcione mejor",
-  "dato_curioso": "1 observación morfopsicológica interesante y específica sobre esta combinación"
+  "biotipo": "dilatado/retraido/mixto",
+  "tonicidad": "hipertonico/hipotonico/mixto",
+  "zona_dominante": "mental/emocional/instintiva",
+  "frente": "descripción breve",
+  "ojos": "descripción breve",
+  "nariz": "descripción breve",
+  "boca": "descripción breve",
+  "mandibula": "descripción breve",
+  "perfil_resumen": "2 frases sobre la personalidad de esta persona según su morfología"
 }`;
 
   try {
-    const headers = {'Content-Type':'application/json','Authorization':'Bearer '+_authToken};
-    const r = await fetch('/api/claude', {
-      method: 'POST', headers,
+    // PASO 1: Analizar persona 1
+    document.getElementById('compatLoading').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px;">Analizando perfil 1<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>';
+
+    const r1 = await fetch('/api/claude', {
+      method:'POST', headers,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5', max_tokens: 3000,
-        messages: [{role:'user', content:[
+        model:'claude-sonnet-4-20250514', max_tokens:800,
+        messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
-          {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
-          {type:'text', text: prompt}
+          {type:'text', text: promptPerfil}
         ]}]
       })
     });
-    const d = await r.json();
-    const raw = (d.content||[]).map(b=>b.text||'').join('').trim();
-    let clean = raw.replace(/```json|```/g,'').trim();
-    const js = clean.indexOf('{'), je = clean.lastIndexOf('}');
-    if(js===-1||je===-1) throw new Error('Sin JSON: '+clean.slice(0,100));
-    const data = JSON.parse(clean.slice(js,je+1));
+    const d1 = await r1.json();
+    const raw1 = (d1.content||[]).map(b=>b.text||'').join('').trim();
+    const j1s = raw1.indexOf('{'), j1e = raw1.lastIndexOf('}');
+    if(j1s===-1||j1e===-1) throw new Error('No se pudo analizar la foto 1');
+    const perfil1 = JSON.parse(raw1.slice(j1s,j1e+1));
+
+    // PASO 2: Analizar persona 2
+    document.getElementById('compatLoading').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px;">Analizando perfil 2<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>';
+
+    const r2 = await fetch('/api/claude', {
+      method:'POST', headers,
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:800,
+        messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
+          {type:'text', text: promptPerfil}
+        ]}]
+      })
+    });
+    const d2 = await r2.json();
+    const raw2 = (d2.content||[]).map(b=>b.text||'').join('').trim();
+    const j2s = raw2.indexOf('{'), j2e = raw2.lastIndexOf('}');
+    if(j2s===-1||j2e===-1) throw new Error('No se pudo analizar la foto 2');
+    const perfil2 = JSON.parse(raw2.slice(j2s,j2e+1));
+
+    // PASO 3: Cruzar perfiles y generar compatibilidad
+    document.getElementById('compatLoading').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px;">Generando reporte de compatibilidad<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>';
+
+    const promptCompat = `Eres un morfopsicólogo clínico experto. Tienes los perfiles morfopsicológicos de dos personas y debes generar un reporte de compatibilidad.
+
+PERFIL PERSONA 1:
+${JSON.stringify(perfil1, null, 2)}
+
+PERFIL PERSONA 2:
+${JSON.stringify(perfil2, null, 2)}
+
+Responde SOLO con JSON puro sin texto extra:
+{
+  "persona1": "2 frases describiendo el perfil de personalidad",
+  "persona2": "2 frases describiendo el perfil de personalidad",
+  "puntuacion": número del 1 al 100,
+  "resumen": "2-3 frases sobre la dinámica esencial entre estos perfiles",
+  "armonias": ["armonía 1", "armonía 2", "armonía 3"],
+  "tensiones": ["tensión 1", "tensión 2"],
+  "dinamica_amor": "2-3 frases sobre la relación romántica",
+  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos",
+  "consejo": "1 consejo concreto para que funcione mejor",
+  "dato_curioso": "1 observación morfopsicológica interesante sobre esta combinación"
+}`;
+
+    const r3 = await fetch('/api/claude', {
+      method:'POST', headers,
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1500,
+        messages:[{role:'user', content: promptCompat}]
+      })
+    });
+    const d3 = await r3.json();
+    const raw3 = (d3.content||[]).map(b=>b.text||'').join('').trim();
+    const j3s = raw3.indexOf('{'), j3e = raw3.lastIndexOf('}');
+    if(j3s===-1||j3e===-1) throw new Error('No se pudo generar el reporte: '+raw3.slice(0,100));
+    const data = JSON.parse(raw3.slice(j3s,j3e+1));
 
     creditos -= 2;
     actualizarCreditos();
 
-    // Renderizar resultado
     const pct = Math.max(0, Math.min(100, data.puntuacion || 50));
     const circum = 2 * Math.PI * 45;
     const dash = (pct / 100) * circum;
     const color = pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--gold)' : 'var(--rose)';
     const etiqueta = pct >= 75 ? 'Alta compatibilidad' : pct >= 50 ? 'Compatibilidad media' : 'Baja compatibilidad';
-    const interpretacion = pct >= 85 ? 'Perfiles muy afines estructuralmente. La relación fluye con naturalidad y los conflictos tienden a resolverse sin desgaste. Rara combinación.' :
-      pct >= 70 ? 'Buena base de compatibilidad con diferencias que enriquecen. Hay terreno común suficiente para construir algo sólido, pero requiere comunicación consciente en los puntos de tensión.' :
-      pct >= 55 ? 'Compatibilidad moderada con fricciones reales. Hay elementos que se complementan, pero diferencias estructurales que generarán tensiones recurrentes. Funciona si ambos están dispuestos a ceder.' :
-      pct >= 40 ? 'Baja compatibilidad estructural. Los perfiles chocan en aspectos fundamentales. No imposible, pero requiere mucho trabajo consciente de ambas partes.' :
-      'Perfiles muy discordantes. Las diferencias estructurales son profundas y el desgaste puede superar los beneficios sin un nivel muy alto de madurez emocional.';
+    const interpretacion = pct >= 85 ? 'Perfiles muy afines estructuralmente. La relación fluye con naturalidad y los conflictos se resuelven sin gran desgaste. Rara combinación.' :
+      pct >= 70 ? 'Buena base de compatibilidad con diferencias que enriquecen. Hay terreno común para construir algo sólido con comunicación consciente.' :
+      pct >= 55 ? 'Compatibilidad moderada con fricciones reales. Funciona si ambos están dispuestos a ceder en áreas clave.' :
+      pct >= 40 ? 'Baja compatibilidad estructural. Los perfiles chocan en aspectos fundamentales y requiere mucho trabajo consciente.' :
+      'Perfiles muy discordantes. El desgaste puede superar los beneficios sin madurez emocional alta de ambas partes.';
 
     document.getElementById('compatResult').innerHTML = `
       <div class="compat-score-ring">
@@ -2511,6 +2563,10 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, si
         </div>
       </div>
 
+      <div style="background:var(--bg2);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;text-align:center;">
+        <div style="font-size:12px;color:var(--ink3);line-height:1.6;">${interpretacion}</div>
+      </div>
+
       <div class="compat-block">
         <div class="compat-block-title">Dinámica general</div>
         <div class="compat-block-text">${data.resumen}</div>
@@ -2518,7 +2574,7 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, si
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">
         <div style="background:var(--bg2);border-radius:10px;padding:1rem;">
-          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:6px;">Persona 1</div>
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--rose);margin-bottom:6px;">Persona 1</div>
           <div style="font-size:12px;color:var(--ink2);line-height:1.6;">${data.persona1}</div>
         </div>
         <div style="background:var(--bg2);border-radius:10px;padding:1rem;">
@@ -2529,12 +2585,12 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, si
 
       <div class="compat-block">
         <div class="compat-block-title">Puntos de armonía</div>
-        <div class="compat-tags">${(data.armonias||[]).map(a=>`<span class="compat-tag positivo">✓ ${a}</span>`).join('')}</div>
+        <div class="compat-tags">${(data.armonias||[]).map(a=>'<span class="compat-tag positivo">✓ '+a+'</span>').join('')}</div>
       </div>
 
       <div class="compat-block">
         <div class="compat-block-title">Fuentes de tensión</div>
-        <div class="compat-tags">${(data.tensiones||[]).map(t=>`<span class="compat-tag negativo">⚡ ${t}</span>`).join('')}</div>
+        <div class="compat-tags">${(data.tensiones||[]).map(t=>'<span class="compat-tag negativo">⚡ '+t+'</span>').join('')}</div>
       </div>
 
       <div class="compat-block">
@@ -2561,14 +2617,16 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después, si
     `;
 
     document.getElementById('compatResult').style.display = 'block';
+
   } catch(e) {
-    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: " + e.message + "</div>';
+    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: ' + e.message + '</div>';
     document.getElementById('compatResult').style.display = 'block';
     document.getElementById('compatBtn').disabled = false;
   }
 
   document.getElementById('compatLoading').style.display = 'none';
 }
+
 
 function resetCompatibilidad() {
   compatImg1 = null; compatType1 = null;
