@@ -2168,86 +2168,46 @@ function resetApp(){
 </script>
   </div><!-- fin seccionAnalisis -->
 
-  <!-- SECCIÓN COMPATIBILIDAD -->
+
+    <!-- SECCIÓN COMPATIBILIDAD -->
   <div id="seccionCompatibilidad" style="display:none;">
 
-    <!-- HERO COMPATIBILIDAD -->
-    <div style="text-align:center;padding:2rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:2rem;">
-      <div style="width:56px;height:56px;background:var(--rose-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
-      </div>
-      <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;font-weight:500;">Compatibilidad facial</div>
-      <div style="font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2rem);color:var(--ink);margin-bottom:0.8rem;line-height:1.2;">¿Qué tan compatibles <em style="font-style:italic;color:var(--gold);">son</em>?</div>
-      <div style="font-size:13px;color:var(--ink3);line-height:1.7;max-width:440px;margin:0 auto;">La morfopsicología permite leer en los rasgos del rostro cómo dos personas se complementan, qué tensiones pueden surgir y cómo es su compatibilidad en el amor y el trabajo.</div>
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Compatibilidad facial</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--ink);margin-bottom:0.5rem;">¿Qué tan compatibles son?</div>
+      <div style="font-size:13px;color:var(--ink3);line-height:1.6;">Sube dos fotografías de frente para analizar la compatibilidad de personalidad basada en morfopsicología.</div>
     </div>
 
-    <!-- QUÉ SE ANALIZA -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem;">
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;border-top:3px solid var(--rose);">
-        <div style="font-size:18px;margin-bottom:6px;">💞</div>
-        <div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px;">Biotipos</div>
-        <div style="font-size:11px;color:var(--ink3);line-height:1.4;">Cómo se relacionan sus energías vitales</div>
-      </div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;border-top:3px solid var(--gold);">
-        <div style="font-size:18px;margin-bottom:6px;">🧠</div>
-        <div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px;">Zonas dominantes</div>
-        <div style="font-size:11px;color:var(--ink3);line-height:1.4;">Qué motor impulsa a cada uno</div>
-      </div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;border-top:3px solid var(--blue);">
-        <div style="font-size:18px;margin-bottom:6px;">💬</div>
-        <div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px;">Zona emocional</div>
-        <div style="font-size:11px;color:var(--ink3);line-height:1.4;">Cómo procesa cada uno sus vínculos</div>
-      </div>
-    </div>
-
-    <!-- UPLOAD -->
     <div class="compat-upload-grid">
       <div>
-        <div class="compat-person-label" style="display:flex;align-items:center;gap:6px;">
-          <span style="width:18px;height:18px;background:var(--rose-pale);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
-          </span>
-          Persona 1
-        </div>
+        <div class="compat-person-label">Persona 1</div>
         <div class="compat-upload-box" id="compatBox1" onclick="document.getElementById('compatInput1').click()">
           <div id="compatPreview1">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            <div class="compat-upload-label">Subir foto de frente</div>
+            <div class="compat-upload-label">Subir foto</div>
           </div>
         </div>
         <input type="file" id="compatInput1" accept="image/*" style="display:none" onchange="loadCompatImg(1,this)">
       </div>
       <div>
-        <div class="compat-person-label" style="display:flex;align-items:center;gap:6px;">
-          <span style="width:18px;height:18px;background:var(--blue-pale);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--blue)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
-          </span>
-          Persona 2
-        </div>
+        <div class="compat-person-label">Persona 2</div>
         <div class="compat-upload-box" id="compatBox2" onclick="document.getElementById('compatInput2').click()">
           <div id="compatPreview2">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            <div class="compat-upload-label">Subir foto de frente</div>
+            <div class="compat-upload-label">Subir foto</div>
           </div>
         </div>
         <input type="file" id="compatInput2" accept="image/*" style="display:none" onchange="loadCompatImg(2,this)">
       </div>
     </div>
 
-    <!-- AVISO CRÉDITOS -->
-    <div style="background:var(--gold-pale2);border:1px solid rgba(155,123,74,0.2);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <div style="font-size:12px;color:var(--ink3);">Cuesta <strong style="color:var(--gold);">2 créditos</strong> — se analizan ambos rostros y se genera el reporte completo.</div>
-    </div>
+    <div style="background:var(--gold-pale2);border:1px solid rgba(155,123,74,0.15);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:12px;color:var(--ink3);">Cuesta <strong style="color:var(--gold)">2 créditos</strong> — se analizan ambos rostros y se genera el reporte de compatibilidad.</div>
 
-    <button class="compat-btn" id="compatBtn" disabled onclick="analizarCompatibilidad()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;vertical-align:middle;"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
-      Analizar compatibilidad
-    </button>
+    <button class="compat-btn" id="compatBtn" disabled onclick="analizarCompatibilidad()">Analizar compatibilidad</button>
 
     <div id="compatLoading" style="display:none;" class="compat-loading">
-      <div style="margin-bottom:1rem;">Leyendo ambos rostros<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>
-      <div style="font-size:11px;color:var(--ink4);">Analizando patrones de compatibilidad</div>
+      <div style="margin-bottom:1rem;">Analizando ambos rostros<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>
+      <div style="font-size:11px;">Esto puede tardar unos segundos</div>
     </div>
 
     <div id="compatResult" style="display:none;" class="compat-result"></div>
@@ -2402,7 +2362,7 @@ function loadCompatImg(num, input) {
 
     const preview = document.getElementById('compatPreview' + num);
     const box = document.getElementById('compatBox' + num);
-    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:140px;object-fit:cover;border-radius:8px;">`;
+    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:140px;object-fit:cover;object-position:center 20%;border-radius:8px;">`;
     box.classList.add('has-img');
 
     if (compatImg1 && compatImg2) document.getElementById('compatBtn').disabled = false;
