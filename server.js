@@ -76,15 +76,10 @@ async function cargarConocimiento() {
 
 function parseBody(req) {
   return new Promise((resolve) => {
-    const chunks = [];
-    let size = 0;
-    req.on('data', chunk => {
-      chunks.push(chunk);
-      size += chunk.length;
-      if (size > 50 * 1024 * 1024) req.destroy(); // 50MB max
-    });
+    let body = '';
+    req.on('data', chunk => body += chunk);
     req.on('end', () => {
-      try { resolve(JSON.parse(Buffer.concat(chunks).toString())); }
+      try { resolve(JSON.parse(body)); }
       catch(e) { resolve({}); }
     });
   });
@@ -249,15 +244,18 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const conocimiento = await cargarConocimiento();
     if (conocimiento.length > 0 && body.messages) {
-      // Limitar contexto a 15000 caracteres para no sobrepasar límite de tokens
-      let contextoCompleto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
-      const contexto = contextoCompleto.slice(0, 15000);
       const ultimoMsg = body.messages[body.messages.length - 1];
-      if (ultimoMsg && Array.isArray(ultimoMsg.content)) {
-        const textoIdx = ultimoMsg.content.findIndex(c => c.type === 'text');
-        if (textoIdx >= 0) ultimoMsg.content[textoIdx].text = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content[textoIdx].text}`;
-      } else if (ultimoMsg && typeof ultimoMsg.content === 'string') {
-        ultimoMsg.content = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content}`;
+      // Solo inyectar conocimiento si el mensaje NO contiene imágenes
+      const tieneImagen = Array.isArray(ultimoMsg.content) && ultimoMsg.content.some(c => c.type === 'image');
+      if (!tieneImagen) {
+        let contextoCompleto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
+        const contexto = contextoCompleto.slice(0, 15000);
+        if (ultimoMsg && Array.isArray(ultimoMsg.content)) {
+          const textoIdx = ultimoMsg.content.findIndex(c => c.type === 'text');
+          if (textoIdx >= 0) ultimoMsg.content[textoIdx].text = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content[textoIdx].text}`;
+        } else if (ultimoMsg && typeof ultimoMsg.content === 'string') {
+          ultimoMsg.content = `CONOCIMIENTO ADICIONAL DE MORFOPSICOLOGÍA:\n${contexto}\n\n---\n\n${ultimoMsg.content}`;
+        }
       }
     }
     const postData = JSON.stringify(body);
