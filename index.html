@@ -1448,7 +1448,7 @@ async function analizarCompleto(imageBase64, imageMediaType) {
   if (_authToken) headers['Authorization'] = 'Bearer ' + _authToken;
   const r = await fetch(API_URL, {
     method:'POST', headers,
-    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000,
+    body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:4000,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:imageMediaType,data:imageBase64}},
         {type:'text',text:PROMPT_COMPLETO}
@@ -1866,7 +1866,7 @@ A trabajar: ${(chatContext.sintesis.puntos_debiles||[]).join(', ')}
 Amor: ${chatContext.sintesis.amor_intro||''}`;
 
     const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system,
         messages:chatHistory.map(m=>({role:m.role,content:m.content}))
       })
     });
@@ -2468,7 +2468,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
     const r = await fetch('/api/claude', {
       method: 'POST', headers,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        model: 'claude-sonnet-4-5', max_tokens: 3000,
         messages: [{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
           {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
@@ -2562,7 +2562,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
 
     document.getElementById('compatResult').style.display = 'block';
   } catch(e) {
-    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: " + e.message + "</div>';
+    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: ' + e.message + '</div>';
     document.getElementById('compatResult').style.display = 'block';
     document.getElementById('compatBtn').disabled = false;
   }
