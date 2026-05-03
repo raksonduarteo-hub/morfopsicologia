@@ -2274,6 +2274,9 @@ function loginConGoogle() {
     sessionStorage.setItem('pf_img_type', imageMediaType);
     if (window._imagePdfDataUrl) sessionStorage.setItem('pf_img_pdf', window._imagePdfDataUrl);
   }
+  // Guardar fotos de compatibilidad
+  if (typeof compatImg1 !== 'undefined' && compatImg1) { sessionStorage.setItem('pf_c1', compatImg1); sessionStorage.setItem('pf_c1t', compatType1); }
+  if (typeof compatImg2 !== 'undefined' && compatImg2) { sessionStorage.setItem('pf_c2', compatImg2); sessionStorage.setItem('pf_c2t', compatType2); }
   const supabaseUrl = 'https://qsgrqelgpgztsppvjyly.supabase.co';
   const redirectTo = encodeURIComponent('https://morfopsicologia-production.up.railway.app');
   window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
@@ -2304,6 +2307,29 @@ async function handleAuthCallback() {
     sessionStorage.removeItem('pf_img_b64');
     sessionStorage.removeItem('pf_img_type');
     sessionStorage.removeItem('pf_img_pdf');
+  }
+  // Restaurar fotos de compatibilidad
+  const c1 = sessionStorage.getItem('pf_c1'), c1t = sessionStorage.getItem('pf_c1t');
+  const c2 = sessionStorage.getItem('pf_c2'), c2t = sessionStorage.getItem('pf_c2t');
+  if (c1 && c1t) {
+    compatImg1 = c1; compatType1 = c1t;
+    sessionStorage.removeItem('pf_c1'); sessionStorage.removeItem('pf_c1t');
+  }
+  if (c2 && c2t) {
+    compatImg2 = c2; compatType2 = c2t;
+    sessionStorage.removeItem('pf_c2'); sessionStorage.removeItem('pf_c2t');
+  }
+  // Restaurar tab activa
+  const savedTab = sessionStorage.getItem('pf_tab');
+  sessionStorage.removeItem('pf_tab');
+  if (savedTab === 'compatibilidad') {
+    setTimeout(() => {
+      switchTab('compatibilidad');
+      // Mostrar fotos en el DOM
+      if (compatImg1) { const p=document.getElementById('compatPreview1'),b=document.getElementById('compatBox1'); if(p) p.innerHTML='<img src="data:'+compatType1+';base64,'+compatImg1+'" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">'; if(b){b.style.padding='0';b.style.border='2px solid var(--rose)';} }
+      if (compatImg2) { const p=document.getElementById('compatPreview2'),b=document.getElementById('compatBox2'); if(p) p.innerHTML='<img src="data:'+compatType2+';base64,'+compatImg2+'" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">'; if(b){b.style.padding='0';b.style.border='2px solid var(--blue)';} }
+      if (compatImg1 && compatImg2) { const btn=document.getElementById('compatBtn'); if(btn){btn.disabled=false;btn.style.background='var(--rose)';} }
+    }, 200);
   }
 }
 
