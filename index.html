@@ -2426,7 +2426,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
     const r = await fetch('/api/claude', {
       method: 'POST', headers,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5', max_tokens: 1500,
+        model: 'claude-sonnet-4-5', max_tokens: 3000,
         messages: [{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
           {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
@@ -2436,12 +2436,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
     });
     const d = await r.json();
     const raw = (d.content||[]).map(b=>b.text||'').join('').trim();
-    // Extraer JSON aunque venga con texto extra
-    let clean = raw.replace(/```json|```/g,'').trim();
-    const jsonStart = clean.indexOf('{');
-    const jsonEnd = clean.lastIndexOf('}');
-    if (jsonStart === -1 || jsonEnd === -1) throw new Error('No se recibió JSON válido. Respuesta: ' + clean.slice(0,100));
-    clean = clean.slice(jsonStart, jsonEnd + 1);
+    const clean = raw.replace(/```json|```/g,'').trim();
     const data = JSON.parse(clean);
 
     creditos -= 2;
