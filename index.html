@@ -888,6 +888,49 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
   .amor-item:last-child { border-bottom: none; }
   .instructions-tips { grid-template-columns: 1fr; }
 }
+
+/* ── COMPATIBILIDAD ── */
+.compat-section { margin-top: 2rem; }
+.compat-tabs { display: flex; gap: 8px; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.compat-tab {
+  padding: 10px 18px; border: none; background: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink3);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.compat-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 500; }
+.compat-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.compat-upload-box {
+  background: var(--white); border: 2px dashed var(--border2);
+  border-radius: 14px; padding: 1.5rem 1rem; text-align: center;
+  cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.compat-upload-box:hover { border-color: var(--gold2); background: var(--gold-pale2); }
+.compat-upload-box.has-img { border-style: solid; border-color: var(--gold); }
+.compat-upload-box img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; }
+.compat-upload-label { font-size: 12px; color: var(--ink3); margin-top: 8px; }
+.compat-person-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; font-weight: 500; }
+.compat-btn { width: 100%; padding: 14px; background: var(--gold); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+.compat-btn:hover { background: var(--gold2); }
+.compat-btn:disabled { background: var(--border2); color: var(--ink4); cursor: not-allowed; }
+.compat-result { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 1.8rem; margin-top: 1.5rem; }
+.compat-score-ring { width: 110px; height: 110px; margin: 0 auto 1.5rem; position: relative; }
+.compat-score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.compat-score-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.compat-score-pct { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
+.compat-score-lbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+.compat-block { margin-bottom: 1.2rem; }
+.compat-block-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.compat-block-text { font-size: 13px; color: var(--ink2); line-height: 1.7; }
+.compat-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.compat-tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--bg2); color: var(--ink3); }
+.compat-tag.positivo { background: var(--green-pale); color: var(--green); }
+.compat-tag.negativo { background: var(--rose-pale); color: var(--rose); }
+.compat-loading { text-align: center; padding: 2.5rem; color: var(--ink3); font-size: 13px; }
+.compat-loading-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin: 0 3px; animation: blink 1.2s infinite; }
+.compat-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.compat-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
 </style>
 </head>
 <body>
@@ -1005,6 +1048,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
     </button>
   </div>
 
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:2rem;">
+    <button onclick="switchTab('analisis')" id="tabAnalisis" style="flex:1;padding:12px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--gold);border-bottom:2px solid var(--gold);cursor:pointer;transition:all 0.2s;">Análisis Individual</button>
+    <button onclick="switchTab('compatibilidad')" id="tabCompat" style="flex:1;padding:12px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink3);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s;">Compatibilidad</button>
+  </div>
+
+  <!-- SECCIÓN ANÁLISIS -->
+  <div id="seccionAnalisis">
   <!-- CUADROS DE ZONA -->
   <div class="zones-preview">
     <div class="zp-card zp-mental" id="zpCard1">
@@ -1622,7 +1674,31 @@ analyzeBtn.addEventListener('click',async()=>{
   ['step1','step2','step3','step4','step5'].forEach(s=>setStep(s,null));
 
   try {
-    setStep('step1','active'); await delay(300);
+    setStep('step1','active');
+
+    // Validar que la imagen contiene un rostro humano
+    const validHeaders = {'Content-Type':'application/json'};
+    if(_authToken) validHeaders['Authorization'] = 'Bearer ' + _authToken;
+    const validR = await fetch('/api/claude', {
+      method:'POST', headers: validHeaders,
+      body: JSON.stringify({
+        model:'claude-sonnet-4-5', max_tokens:20,
+        messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:imageMediaType, data:imageBase64}},
+          {type:'text', text:'¿Hay un rostro humano claro y de frente en esta imagen? Responde solo: SI o NO'}
+        ]}]
+      })
+    });
+    const validD = await validR.json();
+    const validReply = (validD.content||[]).map(b=>b.text||'').join('').trim().toUpperCase();
+    if(!validReply.includes('SI')) {
+      loadingSection.classList.remove('visible');
+      analyzeBtn.style.display='block';
+      analyzeBtn.disabled=false;
+      showError('No se detectó un rostro humano claro en la imagen. Por favor sube una foto de frente con buena iluminación.');
+      return;
+    }
+
     setStep('step1','done'); setStep('step2','active'); setStep('step3','active'); setStep('step4','active'); setStep('step5','active');
 
     const resultado = await analizarCompleto(imageBase64, imageMediaType);
@@ -2090,6 +2166,53 @@ function resetApp(){
   results.classList.add('visible');
 }
 </script>
+  </div><!-- fin seccionAnalisis -->
+
+  <!-- SECCIÓN COMPATIBILIDAD -->
+  <div id="seccionCompatibilidad" style="display:none;">
+
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Compatibilidad facial</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--ink);margin-bottom:0.5rem;">¿Qué tan compatibles son?</div>
+      <div style="font-size:13px;color:var(--ink3);line-height:1.6;">Sube dos fotografías de frente para analizar la compatibilidad de personalidad basada en morfopsicología.</div>
+    </div>
+
+    <div class="compat-upload-grid">
+      <div>
+        <div class="compat-person-label">Persona 1</div>
+        <div class="compat-upload-box" id="compatBox1" onclick="document.getElementById('compatInput1').click()">
+          <div id="compatPreview1">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <div class="compat-upload-label">Subir foto</div>
+          </div>
+        </div>
+        <input type="file" id="compatInput1" accept="image/*" style="display:none" onchange="loadCompatImg(1,this)">
+      </div>
+      <div>
+        <div class="compat-person-label">Persona 2</div>
+        <div class="compat-upload-box" id="compatBox2" onclick="document.getElementById('compatInput2').click()">
+          <div id="compatPreview2">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <div class="compat-upload-label">Subir foto</div>
+          </div>
+        </div>
+        <input type="file" id="compatInput2" accept="image/*" style="display:none" onchange="loadCompatImg(2,this)">
+      </div>
+    </div>
+
+    <div style="background:var(--gold-pale2);border:1px solid rgba(155,123,74,0.15);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:12px;color:var(--ink3);">Cuesta <strong style="color:var(--gold)">2 créditos</strong> — se analizan ambos rostros y se genera el reporte de compatibilidad.</div>
+
+    <button class="compat-btn" id="compatBtn" disabled onclick="analizarCompatibilidad()">Analizar compatibilidad</button>
+
+    <div id="compatLoading" style="display:none;" class="compat-loading">
+      <div style="margin-bottom:1rem;">Analizando ambos rostros<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>
+      <div style="font-size:11px;">Esto puede tardar unos segundos</div>
+    </div>
+
+    <div id="compatResult" style="display:none;" class="compat-result"></div>
+
+  </div><!-- fin seccionCompatibilidad -->
+
 <!-- MODAL LOGIN -->
 <div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,0.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;" onclick="closeLogin(event)">
   <div style="background:var(--white);border-radius:16px;max-width:380px;width:100%;padding:2rem;" onclick="event.stopPropagation()">
@@ -2208,5 +2331,185 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<script>
+// ── TABS ──
+function switchTab(tab) {
+  const esAnalisis = tab === 'analisis';
+  document.getElementById('seccionAnalisis').style.display = esAnalisis ? 'block' : 'none';
+  document.getElementById('seccionCompatibilidad').style.display = esAnalisis ? 'none' : 'block';
+  document.getElementById('tabAnalisis').style.color = esAnalisis ? 'var(--gold)' : 'var(--ink3)';
+  document.getElementById('tabAnalisis').style.borderBottomColor = esAnalisis ? 'var(--gold)' : 'transparent';
+  document.getElementById('tabCompat').style.color = esAnalisis ? 'var(--ink3)' : 'var(--gold)';
+  document.getElementById('tabCompat').style.borderBottomColor = esAnalisis ? 'transparent' : 'var(--gold)';
+}
+
+// ── COMPATIBILIDAD ──
+let compatImg1 = null, compatType1 = null;
+let compatImg2 = null, compatType2 = null;
+
+function loadCompatImg(num, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mtype = file.type || 'image/jpeg';
+    if (num === 1) { compatImg1 = base64; compatType1 = mtype; }
+    else { compatImg2 = base64; compatType2 = mtype; }
+
+    const preview = document.getElementById('compatPreview' + num);
+    const box = document.getElementById('compatBox' + num);
+    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:140px;object-fit:cover;border-radius:8px;">`;
+    box.classList.add('has-img');
+
+    if (compatImg1 && compatImg2) document.getElementById('compatBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analizarCompatibilidad() {
+  if (!compatImg1 || !compatImg2) return;
+  if (!_authToken) { openLogin(); return; }
+  if (creditos < 2) { openPaquetes(); return; }
+
+  document.getElementById('compatBtn').disabled = true;
+  document.getElementById('compatLoading').style.display = 'block';
+  document.getElementById('compatResult').style.display = 'none';
+
+  const prompt = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza los DOS rostros que se te presentan y genera un reporte de compatibilidad de personalidad.
+
+Para cada rostro determina: biotipo, tonicidad, zona dominante, rasgos principales.
+Luego compara ambos perfiles y genera el reporte.
+
+Responde ÚNICAMENTE en JSON con esta estructura:
+{
+  "persona1": "descripción breve del perfil morfopsicológico (2 frases)",
+  "persona2": "descripción breve del perfil morfopsicológico (2 frases)",
+  "puntuacion": número del 1 al 100 que indica compatibilidad global,
+  "resumen": "2-3 frases que capturen la dinámica esencial entre estos dos perfiles",
+  "armonias": ["punto de armonía 1", "punto de armonía 2", "punto de armonía 3"],
+  "tensiones": ["fuente de tensión 1", "fuente de tensión 2"],
+  "dinamica_amor": "2-3 frases sobre cómo sería la relación romántica entre estos perfiles",
+  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos",
+  "consejo": "1 consejo concreto y específico para que esta combinación funcione mejor",
+  "dato_curioso": "1 observación morfopsicológica interesante y específica sobre esta combinación"
+}`;
+
+  try {
+    const headers = {'Content-Type':'application/json','Authorization':'Bearer '+_authToken};
+    const r = await fetch('/api/claude', {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5', max_tokens: 1500,
+        messages: [{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
+          {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
+          {type:'text', text: prompt}
+        ]}]
+      })
+    });
+    const d = await r.json();
+    const raw = (d.content||[]).map(b=>b.text||'').join('').trim();
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const data = JSON.parse(clean);
+
+    creditos -= 2;
+    actualizarCreditos();
+
+    // Renderizar resultado
+    const pct = Math.max(0, Math.min(100, data.puntuacion || 50));
+    const circum = 2 * Math.PI * 45;
+    const dash = (pct / 100) * circum;
+    const color = pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--gold)' : 'var(--rose)';
+    const etiqueta = pct >= 75 ? 'Alta compatibilidad' : pct >= 50 ? 'Compatibilidad media' : 'Baja compatibilidad';
+
+    document.getElementById('compatResult').innerHTML = `
+      <div class="compat-score-ring">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="45" fill="none" stroke="${color}" stroke-width="8"
+            stroke-dasharray="${dash} ${circum}" stroke-linecap="round"/>
+        </svg>
+        <div class="compat-score-num">
+          <div class="compat-score-pct">${pct}%</div>
+          <div class="compat-score-lbl">${etiqueta}</div>
+        </div>
+      </div>
+
+      <div class="compat-block">
+        <div class="compat-block-title">Dinámica general</div>
+        <div class="compat-block-text">${data.resumen}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">
+        <div style="background:var(--bg2);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:6px;">Persona 1</div>
+          <div style="font-size:12px;color:var(--ink2);line-height:1.6;">${data.persona1}</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;">Persona 2</div>
+          <div style="font-size:12px;color:var(--ink2);line-height:1.6;">${data.persona2}</div>
+        </div>
+      </div>
+
+      <div class="compat-block">
+        <div class="compat-block-title">Puntos de armonía</div>
+        <div class="compat-tags">${(data.armonias||[]).map(a=>`<span class="compat-tag positivo">✓ ${a}</span>`).join('')}</div>
+      </div>
+
+      <div class="compat-block">
+        <div class="compat-block-title">Fuentes de tensión</div>
+        <div class="compat-tags">${(data.tensiones||[]).map(t=>`<span class="compat-tag negativo">⚡ ${t}</span>`).join('')}</div>
+      </div>
+
+      <div class="compat-block">
+        <div class="compat-block-title">En el amor</div>
+        <div class="compat-block-text">${data.dinamica_amor}</div>
+      </div>
+
+      <div class="compat-block">
+        <div class="compat-block-title">En el trabajo</div>
+        <div class="compat-block-text">${data.dinamica_trabajo}</div>
+      </div>
+
+      <div style="background:var(--gold-pale2);border:1px solid rgba(155,123,74,0.2);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Consejo clave</div>
+        <div style="font-size:13px;color:var(--ink2);line-height:1.6;">${data.consejo}</div>
+      </div>
+
+      <div style="background:var(--bg2);border-radius:10px;padding:1rem 1.2rem;">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;">Dato curioso</div>
+        <div style="font-size:13px;color:var(--ink2);line-height:1.6;">${data.dato_curioso}</div>
+      </div>
+
+      <button onclick="resetCompatibilidad()" style="width:100%;margin-top:1.5rem;padding:12px;background:none;border:1px solid var(--border2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink3);cursor:pointer;">Analizar otra combinación</button>
+    `;
+
+    document.getElementById('compatResult').style.display = 'block';
+  } catch(e) {
+    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error al analizar. Asegúrate de que ambas fotos tengan rostros claros.</div>';
+    document.getElementById('compatResult').style.display = 'block';
+    document.getElementById('compatBtn').disabled = false;
+  }
+
+  document.getElementById('compatLoading').style.display = 'none';
+}
+
+function resetCompatibilidad() {
+  compatImg1 = null; compatType1 = null;
+  compatImg2 = null; compatType2 = null;
+  document.getElementById('compatPreview1').innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><div class="compat-upload-label">Subir foto</div>';
+  document.getElementById('compatPreview2').innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><div class="compat-upload-label">Subir foto</div>';
+  document.getElementById('compatBox1').classList.remove('has-img');
+  document.getElementById('compatBox2').classList.remove('has-img');
+  document.getElementById('compatInput1').value = '';
+  document.getElementById('compatInput2').value = '';
+  document.getElementById('compatBtn').disabled = true;
+  document.getElementById('compatResult').style.display = 'none';
+}
+</script>
+
 </body>
 </html>
