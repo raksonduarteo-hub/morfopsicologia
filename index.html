@@ -2513,7 +2513,7 @@ Responde ÚNICAMENTE en JSON con esta estructura:
 
     document.getElementById('compatResult').style.display = 'block';
   } catch(e) {
-    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error al analizar. Asegúrate de que ambas fotos tengan rostros claros.</div>';
+    document.getElementById('compatResult').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--rose);font-size:13px;">Error: ' + e.message + '</div>';
     document.getElementById('compatResult').style.display = 'block';
     document.getElementById('compatBtn').disabled = false;
   }
