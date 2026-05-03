@@ -2147,16 +2147,32 @@ function resetApp(){
 
 
     <!-- SECCIÓN COMPATIBILIDAD -->
-  <div id="seccionCompatibilidad" style="display:none;max-width:780px;margin:0 auto;padding:0 1.5rem 4rem;">
+  <div id="seccionCompatibilidad" style="display:none;max-width:780px;margin:-5rem auto 0;padding:0 1.5rem 4rem;">
 
     <!-- HERO -->
-    <div style="text-align:center;padding:2.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2rem;">
+    <div style="text-align:center;padding:0 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;">
       <div style="width:60px;height:60px;background:var(--rose-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
       </div>
       <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;font-weight:500;">Compatibilidad facial</div>
       <div style="font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:var(--ink);margin-bottom:0.8rem;line-height:1.2;">¿Qué tan compatibles <em style="font-style:italic;color:var(--rose);">son?</em></div>
       <div style="font-size:13px;color:var(--ink3);line-height:1.7;max-width:420px;margin:0 auto;">La morfopsicología puede leer en los rasgos del rostro cómo dos personas se complementan emocionalmente, qué tensiones pueden surgir y cómo se relacionan en el amor y la vida.</div>
+    </div>
+
+    <!-- ESCALA -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.3rem 1.5rem;margin-bottom:1.8rem;">
+      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:500;">Cómo interpretar el puntaje</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;"><div style="min-width:48px;font-family:'Playfair Display',serif;font-size:13px;color:var(--green);font-weight:500;">85-100</div><div style="font-size:12px;color:var(--ink2);line-height:1.5;">Perfiles muy afines. La relación fluye con naturalidad y los conflictos se resuelven sin gran desgaste. Rara combinación.</div></div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><div style="min-width:48px;font-family:'Playfair Display',serif;font-size:13px;color:var(--green);font-weight:500;">70-84</div><div style="font-size:12px;color:var(--ink2);line-height:1.5;">Buena base con diferencias que enriquecen. Hay terreno común para construir algo sólido con comunicación consciente.</div></div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><div style="min-width:48px;font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);font-weight:500;">55-69</div><div style="font-size:12px;color:var(--ink2);line-height:1.5;">Compatibilidad moderada con fricciones reales. Funciona si ambos están dispuestos a ceder en áreas clave.</div></div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><div style="min-width:48px;font-family:'Playfair Display',serif;font-size:13px;color:var(--rose);font-weight:500;">40-54</div><div style="font-size:12px;color:var(--ink2);line-height:1.5;">Baja compatibilidad estructural. Los perfiles chocan en aspectos fundamentales y requiere mucho trabajo consciente.</div></div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><div style="min-width:48px;font-family:'Playfair Display',serif;font-size:13px;color:var(--rose);font-weight:500;">0-39</div><div style="font-size:12px;color:var(--ink2);line-height:1.5;">Perfiles muy discordantes. El desgaste puede superar los beneficios sin madurez emocional alta de ambas partes.</div></div>
+      </div>
     </div>
 
     <!-- QUÉ SE ANALIZA -->
@@ -2450,6 +2466,11 @@ Responde ÚNICAMENTE en JSON con esta estructura:
     const dash = (pct / 100) * circum;
     const color = pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--gold)' : 'var(--rose)';
     const etiqueta = pct >= 75 ? 'Alta compatibilidad' : pct >= 50 ? 'Compatibilidad media' : 'Baja compatibilidad';
+    const interpretacion = pct >= 85 ? 'Perfiles muy afines estructuralmente. La relación fluye con naturalidad y los conflictos tienden a resolverse sin desgaste. Rara combinación.' :
+      pct >= 70 ? 'Buena base de compatibilidad con diferencias que enriquecen. Hay terreno común suficiente para construir algo sólido, pero requiere comunicación consciente en los puntos de tensión.' :
+      pct >= 55 ? 'Compatibilidad moderada con fricciones reales. Hay elementos que se complementan, pero diferencias estructurales que generarán tensiones recurrentes. Funciona si ambos están dispuestos a ceder.' :
+      pct >= 40 ? 'Baja compatibilidad estructural. Los perfiles chocan en aspectos fundamentales. No imposible, pero requiere mucho trabajo consciente de ambas partes.' :
+      'Perfiles muy discordantes. Las diferencias estructurales son profundas y el desgaste puede superar los beneficios sin un nivel muy alto de madurez emocional.';
 
     document.getElementById('compatResult').innerHTML = `
       <div class="compat-score-ring">
