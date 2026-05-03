@@ -2201,7 +2201,7 @@ function resetApp(){
           <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
           Persona 1
         </div>
-        <div id="compatBox1" onclick="document.getElementById('compatInput1').click()" style="background:var(--white);border:2px dashed var(--border2);border-radius:14px;padding:1.2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <div id="compatBox1" onclick="if(!_authToken){openLogin();return;}document.getElementById('compatInput1').click()" style="background:var(--white);border:2px dashed var(--border2);border-radius:14px;padding:1.2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
           <div id="compatPreview1" style="width:100%;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             <div style="font-size:12px;color:var(--ink3);margin-top:8px;">Subir foto de frente</div>
@@ -2214,7 +2214,7 @@ function resetApp(){
           <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--blue)"><path d="M12 21C12 21 3 14 3 8a5 5 0 0110 0 5 5 0 0110 0c0 6-9 13-9 13z"/></svg>
           Persona 2
         </div>
-        <div id="compatBox2" onclick="document.getElementById('compatInput2').click()" style="background:var(--white);border:2px dashed var(--border2);border-radius:14px;padding:1.2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <div id="compatBox2" onclick="if(!_authToken){openLogin();return;}document.getElementById('compatInput2').click()" style="background:var(--white);border:2px dashed var(--border2);border-radius:14px;padding:1.2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
           <div id="compatPreview2" style="width:100%;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             <div style="font-size:12px;color:var(--ink3);margin-top:8px;">Subir foto de frente</div>
