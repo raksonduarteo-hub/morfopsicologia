@@ -73,10 +73,14 @@ function supabaseAuth(endpoint, body) {
 const ADMIN_EMAIL = 'rakson.duarteo@gmail.com';
 
 // Verificar si el token corresponde al admin
-async function esAdmin(token) {
+function esAdmin(token) {
   if (!token) return false;
-  const r = await supabaseFetch('/rest/v1/profiles?select=email', 'GET', null, token);
-  return r.data && r.data[0] && r.data[0].email === ADMIN_EMAIL;
+  try {
+    // Leer email directo del JWT sin consultar Supabase
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    const email = payload.email || (payload.user_metadata && payload.user_metadata.email) || '';
+    return email === ADMIN_EMAIL;
+  } catch(e) { return false; }
 }
 
 // Cargar conocimiento activo para el análisis
