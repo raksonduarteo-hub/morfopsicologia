@@ -3,126 +3,366 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Psicología Facial</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Admin · Psicología Facial</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', sans-serif; background: #0f0f0f; color: #e0ddd8; min-height: 100vh; }
-.header { background: #1a1814; border-bottom: 1px solid #2a2620; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-.header h1 { font-size: 16px; color: #9B7B4A; letter-spacing: 0.1em; }
-.container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
-.card { background: #1a1814; border: 1px solid #2a2620; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-.card h2 { font-size: 13px; letter-spacing: 0.1em; color: #9B7B4A; margin-bottom: 1rem; }
-input, textarea, select { width: 100%; padding: 10px 12px; background: #0f0f0f; border: 1px solid #2a2620; border-radius: 8px; color: #e0ddd8; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; margin-bottom: 0.75rem; }
-textarea { min-height: 150px; resize: vertical; }
-button { padding: 10px 20px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
-.btn-primary { background: #9B7B4A; color: white; }
-.btn-danger { background: #8B3A3A; color: white; }
-.btn-toggle { background: #2a2620; color: #9B7B4A; }
-.item { background: #0f0f0f; border: 1px solid #2a2620; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
-.item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.item-title { font-size: 14px; font-weight: 500; }
-.item-cat { font-size: 11px; color: #9B7B4A; background: rgba(155,123,74,0.1); padding: 2px 8px; border-radius: 10px; }
-.item-content { font-size: 12px; color: #8a8580; line-height: 1.6; max-height: 80px; overflow: hidden; }
-.item-actions { display: flex; gap: 8px; margin-top: 0.75rem; }
-.inactive { opacity: 0.5; }
-.badge-active { background: #1a3a1a; color: #4CAF50; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-.badge-inactive { background: #3a1a1a; color: #CF6679; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-#authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0D0C0A;
+  --bg2: #161410;
+  --bg3: #1E1B16;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --gold: #C4A06A;
+  --gold2: #9B7B4A;
+  --ink: #E8E4DC;
+  --ink2: #A8A39A;
+  --ink3: #6A6560;
+  --green: #4CAF50;
+  --green-pale: rgba(76,175,80,0.12);
+  --red: #CF6679;
+  --red-pale: rgba(207,102,121,0.12);
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+/* ── LOGIN SCREEN ── */
+#authScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem;
+}
+.login-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+.login-eyebrow {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.login-eyebrow::before, .login-eyebrow::after {
+  content: ''; flex: 1; max-width: 30px; height: 1px; background: var(--gold2);
+}
+.login-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 400; color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.login-sub {
+  font-size: 13px; color: var(--ink3); margin-bottom: 2rem; line-height: 1.6;
+}
+.btn-google {
+  width: 100%; padding: 14px;
+  background: var(--bg3); color: var(--ink);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-google:hover { background: #2a261e; border-color: var(--gold2); }
+#authMsg { margin-top: 1rem; font-size: 13px; color: var(--red); }
+
+/* ── LAYOUT ── */
 #adminContent { display: none; }
-.msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 13px; }
-.msg-ok { background: #1a3a1a; color: #4CAF50; }
-.msg-err { background: #3a1a1a; color: #CF6679; }
+
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+.topbar-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+}
+.topbar-title {
+  font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500;
+}
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.topbar-email { font-size: 12px; color: var(--ink3); }
+.btn-logout {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--ink2); font-size: 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+.container { max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+
+/* ── STATS ── */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.2rem 1.4rem;
+}
+.stat-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem;
+}
+.card-title {
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 1.4rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── FORM ── */
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 11px; color: var(--ink3); margin-bottom: 6px; letter-spacing: 0.05em; }
+input[type=text], textarea, select {
+  width: 100%; padding: 10px 14px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--ink);
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color 0.2s;
+}
+input[type=text]:focus, textarea:focus, select:focus { border-color: var(--gold2); }
+textarea { min-height: 140px; resize: vertical; line-height: 1.6; }
+select option { background: var(--bg3); }
+
+.btn-primary {
+  padding: 11px 22px;
+  background: var(--gold2); color: #fff;
+  border: none; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--gold); }
+
+/* ── KNOWLEDGE ITEMS ── */
+.item {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.2rem;
+  margin-bottom: 0.75rem; transition: border-color 0.2s;
+}
+.item:hover { border-color: var(--border2); }
+.item.inactive { opacity: 0.45; }
+.item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 6px; }
+.item-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.item-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+.item-cat {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold2); background: rgba(155,123,74,0.12);
+  padding: 2px 8px; border-radius: 20px;
+}
+.badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; }
+.badge-on { background: var(--green-pale); color: var(--green); }
+.badge-off { background: var(--red-pale); color: var(--red); }
+.item-preview { font-size: 12px; color: var(--ink3); line-height: 1.6; max-height: 56px; overflow: hidden; margin-bottom: 10px; }
+.item-actions { display: flex; gap: 8px; }
+.btn-sm {
+  padding: 5px 12px; border: 1px solid var(--border2);
+  border-radius: 6px; font-size: 12px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.btn-toggle-item { background: transparent; color: var(--ink2); }
+.btn-toggle-item:hover { border-color: var(--gold2); color: var(--gold); }
+.btn-del { background: transparent; color: var(--ink3); }
+.btn-del:hover { border-color: var(--red); color: var(--red); }
+
+/* ── MESSAGES ── */
+.msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 1rem; }
+.msg-ok { background: var(--green-pale); color: var(--green); }
+.msg-err { background: var(--red-pale); color: var(--red); }
+
+.empty { text-align: center; padding: 3rem; color: var(--ink3); font-size: 13px; }
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="authScreen">
-  <div style="text-align:center;">
-    <div style="font-size:13px;color:#9B7B4A;letter-spacing:0.1em;margin-bottom:1rem;">PSICOLOGÍA FACIAL · ADMIN</div>
-    <p style="color:#8a8580;font-size:13px;margin-bottom:1.5rem;">Verificando acceso...</p>
+  <div class="login-card">
+    <div class="login-eyebrow">Admin</div>
+    <div class="login-title">Panel de control</div>
+    <p class="login-sub">Accede con tu cuenta de administrador para gestionar el conocimiento de morfopsicología.</p>
     <div id="authMsg"></div>
+    <button class="btn-google" onclick="loginConGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+      </svg>
+      Continuar con Google
+    </button>
   </div>
 </div>
 
+<!-- PANEL -->
 <div id="adminContent">
-  <div class="header">
-    <h1>PANEL DE ADMINISTRACIÓN · PSICOLOGÍA FACIAL</h1>
-    <button class="btn-toggle" onclick="cerrarSesion()">Cerrar sesión</button>
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-dot"></div>
+      <span class="topbar-title">Psicología Facial · Admin</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-email" id="topbarEmail"></span>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
   </div>
 
   <div class="container">
-    <div class="card">
-      <h2>AGREGAR CONOCIMIENTO</h2>
-      <div id="formMsg"></div>
-      <input type="text" id="nuevoTitulo" placeholder="Título (ej: Biotipo Dilatado — Características)">
-      <select id="nuevaCategoria">
-        <option value="biotipo">Biotipo</option>
-        <option value="zona_mental">Zona Mental</option>
-        <option value="zona_emocional">Zona Emocional</option>
-        <option value="zona_instintiva">Zona Instintiva</option>
-        <option value="indicadores">Indicadores Psicopatológicos</option>
-        <option value="amor">Amor y Vínculos</option>
-        <option value="general">General</option>
-      </select>
-      <textarea id="nuevoContenido" placeholder="Escribe aquí el conocimiento de morfopsicología que quieres agregar..."></textarea>
-      <button class="btn-primary" onclick="agregarConocimiento()">Agregar</button>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total entradas</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Activas</div>
+        <div class="stat-value" id="statActivas">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Inactivas</div>
+        <div class="stat-value" id="statInactivas">—</div>
+      </div>
     </div>
 
     <div class="card">
-      <h2>BASE DE CONOCIMIENTO (<span id="totalItems">0</span> entradas)</h2>
-      <div id="listaConocimiento"></div>
+      <div class="card-title">Agregar conocimiento</div>
+      <div id="formMsg"></div>
+      <div class="field">
+        <label>Título</label>
+        <input type="text" id="nuevoTitulo" placeholder="ej: Biotipo Dilatado — Características principales">
+      </div>
+      <div class="field">
+        <label>Categoría</label>
+        <select id="nuevaCategoria">
+          <option value="biotipo">Biotipo</option>
+          <option value="zona_mental">Zona Mental</option>
+          <option value="zona_emocional">Zona Emocional</option>
+          <option value="zona_instintiva">Zona Instintiva</option>
+          <option value="indicadores">Indicadores Psicopatológicos</option>
+          <option value="amor">Amor y Vínculos</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Contenido</label>
+        <textarea id="nuevoContenido" placeholder="Escribe aquí el conocimiento de morfopsicología..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="agregarConocimiento()">Agregar entrada</button>
     </div>
+
+    <div class="card">
+      <div class="card-title">Base de conocimiento</div>
+      <div id="listaConocimiento"><div class="empty">Cargando...</div></div>
+    </div>
+
   </div>
 </div>
 
 <script>
 const ADMIN_EMAIL = 'rakson.duarteo@gmail.com';
+const SUPABASE_URL = 'https://qsgrqelgpgztsppvjyly.supabase.co';
 let _token = localStorage.getItem('pf_token');
 
+// ── Auth ──
+function loginConGoogle() {
+  const redirectTo = encodeURIComponent('https://morfopsicologia-production.up.railway.app/admin');
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
+}
+
+function handleCallback() {
+  const hash = window.location.hash;
+  if (!hash) return;
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get('access_token');
+  if (!token) return;
+  _token = token;
+  localStorage.setItem('pf_token', token);
+  window.history.replaceState({}, document.title, '/admin');
+}
+
+function getEmailFromToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.email || (payload.user_metadata && payload.user_metadata.email) || '';
+  } catch(e) { return ''; }
+}
+
 async function verificarAcceso() {
+  handleCallback();
+
   if (!_token) {
-    document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">No hay sesión activa. <a href="/" style="color:#9B7B4A;">Vuelve a la app e inicia sesión con Google.</a></p>';
+    showLoginWith('Inicia sesión para acceder al panel.');
     return;
   }
 
-  try {
-    const r = await fetch('/api/perfil', { headers: { 'Authorization': 'Bearer ' + _token } });
-    const data = await r.json();
-    if (data.email !== ADMIN_EMAIL) {
-      document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">Acceso denegado.</p>';
-      return;
-    }
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('adminContent').style.display = 'block';
-    cargarConocimiento();
-  } catch(e) {
-    document.getElementById('authMsg').innerHTML = '<p style="color:#CF6679;font-size:13px;">Error verificando acceso.</p>';
+  const email = getEmailFromToken(_token);
+  if (email !== ADMIN_EMAIL) {
+    showLoginWith(`Acceso denegado para ${email || 'este usuario'}.`);
+    return;
   }
+
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('adminContent').style.display = 'block';
+  document.getElementById('topbarEmail').textContent = email;
+  cargarConocimiento();
 }
 
+function showLoginWith(msg) {
+  document.getElementById('authMsg').innerHTML = `<div class="msg msg-err" style="margin-bottom:1rem;">${msg}</div>`;
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('pf_token');
+  _token = null;
+  document.getElementById('adminContent').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authMsg').innerHTML = '';
+}
+
+// ── Conocimiento ──
 async function cargarConocimiento() {
-  const r = await fetch('/admin/conocimiento', { headers: { 'Authorization': 'Bearer ' + _token } });
-  const items = await r.json();
-  document.getElementById('totalItems').textContent = items.length;
-  document.getElementById('listaConocimiento').innerHTML = items.length === 0
-    ? '<p style="color:#8a8580;font-size:13px;text-align:center;padding:2rem;">No hay entradas aún.</p>'
-    : items.map(item => `
-      <div class="item ${item.activo ? '' : 'inactive'}">
-        <div class="item-header">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="item-title">${item.titulo}</span>
-            <span class="item-cat">${item.categoria}</span>
+  try {
+    const r = await fetch('/admin/conocimiento', { headers: { 'Authorization': 'Bearer ' + _token } });
+    const items = await r.json();
+    const activas = items.filter(i => i.activo).length;
+    document.getElementById('statTotal').textContent = items.length;
+    document.getElementById('statActivas').textContent = activas;
+    document.getElementById('statInactivas').textContent = items.length - activas;
+
+    document.getElementById('listaConocimiento').innerHTML = items.length === 0
+      ? '<div class="empty">No hay entradas aún. Agrega la primera arriba.</div>'
+      : items.map(item => `
+        <div class="item ${item.activo ? '' : 'inactive'}">
+          <div class="item-top">
+            <div class="item-meta">
+              <span class="item-title">${item.titulo}</span>
+              <span class="item-cat">${item.categoria}</span>
+            </div>
+            <span class="badge ${item.activo ? 'badge-on' : 'badge-off'}">${item.activo ? 'Activo' : 'Inactivo'}</span>
           </div>
-          <span class="${item.activo ? 'badge-active' : 'badge-inactive'}">${item.activo ? 'Activo' : 'Inactivo'}</span>
+          <div class="item-preview">${item.contenido}</div>
+          <div class="item-actions">
+            <button class="btn-sm btn-toggle-item" onclick="toggleActivo('${item.id}', ${item.activo})">${item.activo ? 'Desactivar' : 'Activar'}</button>
+            <button class="btn-sm btn-del" onclick="eliminar('${item.id}')">Eliminar</button>
+          </div>
         </div>
-        <div class="item-content">${item.contenido}</div>
-        <div class="item-actions">
-          <button class="btn-toggle" onclick="toggleActivo('${item.id}', ${item.activo})">${item.activo ? 'Desactivar' : 'Activar'}</button>
-          <button class="btn-danger" onclick="eliminar('${item.id}')">Eliminar</button>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+  } catch(e) {
+    document.getElementById('listaConocimiento').innerHTML = '<div class="empty">Error cargando datos.</div>';
+  }
 }
 
 async function agregarConocimiento() {
@@ -132,24 +372,24 @@ async function agregarConocimiento() {
   const msgEl = document.getElementById('formMsg');
 
   if (!titulo || !contenido) {
-    msgEl.innerHTML = '<div class="msg msg-err">Completa título y contenido.</div>';
+    msgEl.innerHTML = '<div class="msg msg-err">Completa el título y el contenido.</div>';
     return;
   }
 
   const r = await fetch('/admin/conocimiento', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token },
-    body: JSON.stringify({ titulo, contenido, categoria })
+    body: JSON.stringify({ titulo, contenido, categoria, activo: true })
   });
 
   if (r.ok) {
-    msgEl.innerHTML = '<div class="msg msg-ok">✓ Agregado correctamente.</div>';
+    msgEl.innerHTML = '<div class="msg msg-ok">✓ Entrada agregada correctamente.</div>';
     document.getElementById('nuevoTitulo').value = '';
     document.getElementById('nuevoContenido').value = '';
     cargarConocimiento();
     setTimeout(() => msgEl.innerHTML = '', 3000);
   } else {
-    msgEl.innerHTML = '<div class="msg msg-err">Error al agregar.</div>';
+    msgEl.innerHTML = '<div class="msg msg-err">Error al agregar. Intenta de nuevo.</div>';
   }
 }
 
@@ -163,17 +403,12 @@ async function toggleActivo(id, activo) {
 }
 
 async function eliminar(id) {
-  if (!confirm('¿Eliminar esta entrada?')) return;
+  if (!confirm('¿Eliminar esta entrada? Esta acción no se puede deshacer.')) return;
   await fetch(`/admin/conocimiento/${id}`, {
     method: 'DELETE',
     headers: { 'Authorization': 'Bearer ' + _token }
   });
   cargarConocimiento();
-}
-
-function cerrarSesion() {
-  localStorage.removeItem('pf_token');
-  window.location.href = '/';
 }
 
 verificarAcceso();
