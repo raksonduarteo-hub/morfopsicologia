@@ -244,7 +244,9 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const conocimiento = await cargarConocimiento();
     if (conocimiento.length > 0 && body.messages) {
-      const contexto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
+      // Limitar contexto a 15000 caracteres para no sobrepasar límite de tokens
+      let contextoCompleto = conocimiento.map(k => `[${k.categoria.toUpperCase()}] ${k.titulo}:\n${k.contenido}`).join('\n\n');
+      const contexto = contextoCompleto.slice(0, 15000);
       const ultimoMsg = body.messages[body.messages.length - 1];
       if (ultimoMsg && Array.isArray(ultimoMsg.content)) {
         const textoIdx = ultimoMsg.content.findIndex(c => c.type === 'text');
