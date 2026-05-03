@@ -2459,17 +2459,28 @@ async function analizarCompatibilidad() {
   const headers = {'Content-Type':'application/json'};
   if (_authToken) headers['Authorization'] = 'Bearer ' + _authToken;
 
-  const promptPerfil = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza el rostro de esta persona y devuelve SOLO un objeto JSON válido sin texto extra, sin bloques de código markdown:
+  const promptPerfil = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza el rostro de esta persona con precisión objetiva y devuelve SOLO un objeto JSON válido sin texto extra, sin bloques de código markdown.
+
+CRITERIOS DE ANÁLISIS OBLIGATORIOS:
+- Biotipo dilatado: rostro ancho, expansivo, rasgos abiertos — indica apertura, sociabilidad, búsqueda de placer
+- Biotipo retraído: rostro estrecho, tenso, rasgos finos o contraídos — indica introversión, control, sensibilidad
+- Tonicidad: rasgos tensos/marcados = hipertónico (voluntad, rigidez); rasgos blandos/caídos = hipotónico (sensibilidad, pasividad)
+- Zona mental (frente): amplia = intelectual; estrecha o baja = más instintivo
+- Zona emocional (ojos/nariz): nariz pequeña o discreta = menor desarrollo emocional/social; nariz grande y modelada = vida afectiva intensa
+- Zona instintiva (boca/mandíbula): mandíbula cuadrada/fuerte = determinación; boca carnosa = sensualidad; mentón retraído = inseguridad vital
+- Rasgos abollados, asimétricos o poco definidos indican tensión interna, conflicto o inmadurez en esa zona
+
 {
-  "biotipo": "dilatado/retraido/mixto",
-  "tonicidad": "hipertonico/hipotonico/mixto",
+  "biotipo": "dilatado/retraido/mixto — describe brevemente qué rasgos lo determinan",
+  "tonicidad": "hipertonico/hipotonico/mixto — describe qué rasgos lo evidencian",
   "zona_dominante": "mental/emocional/instintiva",
-  "frente": "descripción breve",
-  "ojos": "descripción breve",
-  "nariz": "descripción breve",
-  "boca": "descripción breve",
-  "mandibula": "descripción breve",
-  "perfil_resumen": "2 frases sobre la personalidad de esta persona según su morfología"
+  "tension_interna": "ninguna/leve/moderada/alta — describe si hay asimetrías, rasgos abollados o contradicciones entre zonas",
+  "frente": "descripción objetiva del desarrollo y forma",
+  "ojos": "descripción objetiva de tamaño, profundidad, expresión",
+  "nariz": "descripción objetiva de tamaño, modelado y desarrollo",
+  "boca": "descripción objetiva de grosor labial, tensión y comisuras",
+  "mandibula": "descripción objetiva de anchura, tensión y definición",
+  "perfil_resumen": "2 frases honestas sobre la personalidad según morfología — incluye tanto fortalezas como limitaciones reales"
 }`;
 
   try {
@@ -2479,7 +2490,7 @@ async function analizarCompatibilidad() {
     const r1 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-5', max_tokens:1200,
+        model:'claude-sonnet-4-5', max_tokens:1200, temperature:0.3,
         messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType1, data:compatImg1}},
           {type:'text', text: promptPerfil}
@@ -2499,7 +2510,7 @@ async function analizarCompatibilidad() {
     const r2 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-5', max_tokens:1200,
+        model:'claude-sonnet-4-5', max_tokens:1200, temperature:0.3,
         messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:compatType2, data:compatImg2}},
           {type:'text', text: promptPerfil}
@@ -2516,32 +2527,67 @@ async function analizarCompatibilidad() {
     // PASO 3: Cruzar perfiles y generar compatibilidad
     document.getElementById('compatLoading').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px;">Generando reporte de compatibilidad<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>';
 
-    const promptCompat = `Eres un morfopsicólogo clínico experto. Tienes los perfiles morfopsicológicos de dos personas y debes generar un reporte de compatibilidad.
+    const promptCompat = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza la compatibilidad entre dos perfiles morfopsicológicos con HONESTIDAD CLÍNICA.
 
-PERFIL PERSONA 1:
+PERFILES:
+
+PERSONA 1:
 ${JSON.stringify(perfil1, null, 2)}
 
-PERFIL PERSONA 2:
+PERSONA 2:
 ${JSON.stringify(perfil2, null, 2)}
+
+REGLAS DE PUNTUACIÓN — sigue esta escala morfopsicológica con rigor:
+
+85-100 → Perfiles estructuralmente muy afines: mismo biotipo O biotipos complementarios (dilatado+dilatado, retraído+retraído) + zonas dominantes que se refuerzan + tonicidades similares + sin tensión interna alta en ninguno. Esta combinación es RARA.
+
+70-84 → Buena base: biotipos compatibles + al menos 1 zona dominante en común + tensión interna leve o ninguna en ambos. Hay fricciones menores pero manejables.
+
+55-69 → Compatibilidad media: biotipos distintos pero con puntos de contacto en alguna zona. Puede funcionar con esfuerzo consciente. Fricciones reales en lo cotidiano.
+
+40-54 → Compatibilidad baja: biotipos opuestos (dilatado vs retraído) + zonas dominantes en conflicto + al menos uno con tensión interna moderada/alta. Requiere mucho trabajo.
+
+0-39 → Perfiles discordantes: todo en tensión estructural — biotipos opuestos + tonicidades incompatibles + zonas dominantes que chocan + tensión interna alta en uno o ambos.
+
+CRITERIOS ESPECÍFICOS DE PENALIZACIÓN (cada uno resta puntos):
+- Biotipos opuestos sin zonas compensatorias: -15 puntos
+- Zonas dominantes que compiten (ambos mentales sin emocional desarrollado): -10 puntos  
+- Tensión interna alta en uno o ambos perfiles: -10 puntos
+- Nariz pequeña/poco desarrollada en ambos (bajo desarrollo emocional/vincular): -8 puntos
+- Tonicidades muy distintas (hipertónico vs hipotónico extremo): -8 puntos
+- Mandíbulas muy distintas (uno muy fuerte, otro muy débil): -5 puntos
+
+CRITERIOS DE BONIFICACIÓN:
+- Mismo biotipo: +10 puntos
+- Zonas dominantes complementarias (uno mental + otro emocional): +8 puntos
+- Tonicidades similares: +5 puntos
+- Sin tensión interna en ninguno: +5 puntos
+
+IMPORTANTE:
+- La mayoría de combinaciones aleatorias cae entre 45-65. Puntajes sobre 75 requieren afinidad real demostrable.
+- Si hay tensión interna alta en ambos, el techo máximo es 65.
+- Sé honesto aunque el resultado sea bajo — un puntaje de 35 es válido y útil si corresponde.
+- Las armonias y tensiones deben basarse en rasgos morfológicos CONCRETOS observados, no en generalidades.
 
 Responde SOLO con JSON válido puro sin texto extra, sin bloques de código markdown:
 {
-  "persona1": "2 frases describiendo el perfil de personalidad",
-  "persona2": "2 frases describiendo el perfil de personalidad",
-  "puntuacion": 75,
-  "resumen": "2-3 frases sobre la dinámica esencial entre estos perfiles",
-  "armonias": ["armonía 1", "armonía 2", "armonía 3"],
-  "tensiones": ["tensión 1", "tensión 2"],
-  "dinamica_amor": "2-3 frases sobre la relación romántica",
-  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos",
-  "consejo": "1 consejo concreto para que funcione mejor",
-  "dato_curioso": "1 observación morfopsicológica interesante sobre esta combinación"
+  "persona1": "2 frases honestas describiendo el perfil — fortalezas Y limitaciones",
+  "persona2": "2 frases honestas describiendo el perfil — fortalezas Y limitaciones",
+  "puntuacion": 55,
+  "puntuacion_razonamiento": "1 frase explicando en qué rasgos morfológicos específicos se basa el puntaje",
+  "resumen": "2-3 frases honestas sobre la dinámica real entre estos perfiles",
+  "armonias": ["armonía basada en rasgo concreto 1", "armonía basada en rasgo concreto 2", "armonía basada en rasgo concreto 3"],
+  "tensiones": ["tensión basada en rasgo concreto 1", "tensión basada en rasgo concreto 2"],
+  "dinamica_amor": "2-3 frases honestas sobre la relación romántica — incluyendo dificultades reales",
+  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos — con fricción si corresponde",
+  "consejo": "1 consejo concreto y específico para esta combinación en particular",
+  "dato_curioso": "1 observación morfopsicológica específica de esta combinación"
 }`;
 
     const r3 = await fetch('/api/claude', {
       method:'POST', headers,
       body: JSON.stringify({
-        model:'claude-sonnet-4-5', max_tokens:1800,
+        model:'claude-sonnet-4-5', max_tokens:1800, temperature:0.3,
         messages:[{role:'user', content: promptCompat}]
       })
     });
@@ -2581,6 +2627,7 @@ Responde SOLO con JSON válido puro sin texto extra, sin bloques de código mark
 
       <div style="background:var(--bg2);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;text-align:center;">
         <div style="font-size:12px;color:var(--ink3);line-height:1.6;">${interpretacion}</div>
+        ${data.puntuacion_razonamiento ? `<div style="margin-top:8px;font-size:11px;color:var(--ink4);font-style:italic;">${data.puntuacion_razonamiento}</div>` : ''}
       </div>
 
       <div class="compat-block">
