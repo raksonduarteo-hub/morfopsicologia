@@ -918,7 +918,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--i
 .compat-score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .compat-score-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .compat-score-pct { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
-.compat-score-lbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+.compat-score-lbl { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); text-align: center; max-width: 80px; line-height: 1.3; }
 .compat-block { margin-bottom: 1.2rem; }
 .compat-block-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .compat-block-text { font-size: 13px; color: var(--ink2); line-height: 1.7; }
@@ -2414,35 +2414,23 @@ function loadCompatImg(num, input) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxSize = 1024;
-      let w = img.width, h = img.height;
-      if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
-      else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL('image/jpeg', 0.85);
-      const base64 = compressed.split(',')[1];
+    const base64 = dataUrl.split(',')[1];
+    const mtype = file.type || 'image/jpeg';
+    if (num === 1) { compatImg1 = base64; compatType1 = mtype; }
+    else { compatImg2 = base64; compatType2 = mtype; }
 
-      if (num === 1) { compatImg1 = base64; compatType1 = 'image/jpeg'; }
-      else { compatImg2 = base64; compatType2 = 'image/jpeg'; }
+    const preview = document.getElementById('compatPreview' + num);
+    const box = document.getElementById('compatBox' + num);
+    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">`;
+    box.style.padding = '0';
+    box.style.border = '2px solid var(--rose)';
 
-      const preview = document.getElementById('compatPreview' + num);
-      const box = document.getElementById('compatBox' + num);
-      preview.innerHTML = `<img src="${compressed}" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">`;
-      box.style.padding = '0';
-      box.style.border = '2px solid var(--rose)';
-
-      const btn = document.getElementById('compatBtn');
-      if (compatImg1 && compatImg2) {
-        btn.disabled = false;
-        btn.style.background = 'var(--rose)';
-        btn.style.cursor = 'pointer';
-      }
-    };
-    img.src = dataUrl;
+    const btn = document.getElementById('compatBtn');
+    if (compatImg1 && compatImg2) {
+      btn.disabled = false;
+      btn.style.background = 'var(--rose)';
+      btn.style.cursor = 'pointer';
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -2559,7 +2547,7 @@ Responde SOLO con JSON válido puro sin texto extra, sin bloques de código mark
     const circum = 2 * Math.PI * 45;
     const dash = (pct / 100) * circum;
     const color = pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--gold)' : 'var(--rose)';
-    const etiqueta = pct >= 75 ? 'Alta compatibilidad' : pct >= 50 ? 'Compatibilidad media' : 'Baja compatibilidad';
+    const etiqueta = pct >= 85 ? 'Alta compatibilidad' : pct >= 70 ? 'Buena compatibilidad' : pct >= 55 ? 'Compatibilidad media' : pct >= 40 ? 'Compatibilidad baja' : 'Perfiles discordantes';
     const interpretacion = pct >= 85 ? 'Perfiles muy afines estructuralmente. La relación fluye con naturalidad y los conflictos se resuelven sin gran desgaste. Rara combinación.' :
       pct >= 70 ? 'Buena base de compatibilidad con diferencias que enriquecen. Hay terreno común para construir algo sólido con comunicación consciente.' :
       pct >= 55 ? 'Compatibilidad moderada con fricciones reales. Funciona si ambos están dispuestos a ceder en áreas clave.' :
@@ -2647,14 +2635,26 @@ Responde SOLO con JSON válido puro sin texto extra, sin bloques de código mark
 function resetCompatibilidad() {
   compatImg1 = null; compatType1 = null;
   compatImg2 = null; compatType2 = null;
-  document.getElementById('compatPreview1').innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><div class="compat-upload-label">Subir foto</div>';
-  document.getElementById('compatPreview2').innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><div class="compat-upload-label">Subir foto</div>';
-  document.getElementById('compatBox1').classList.remove('has-img');
-  document.getElementById('compatBox2').classList.remove('has-img');
+
+  const svgPlaceholder = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><div class=\"compat-upload-label\">Subir foto</div>';
+  document.getElementById('compatPreview1').innerHTML = svgPlaceholder;
+  document.getElementById('compatPreview2').innerHTML = svgPlaceholder;
+
+  const box1 = document.getElementById('compatBox1');
+  const box2 = document.getElementById('compatBox2');
+  box1.classList.remove('has-img'); box1.style.padding = ''; box1.style.border = '';
+  box2.classList.remove('has-img'); box2.style.padding = ''; box2.style.border = '';
+
   document.getElementById('compatInput1').value = '';
   document.getElementById('compatInput2').value = '';
-  document.getElementById('compatBtn').disabled = true;
-  document.getElementById('compatResult').style.display = 'none';
+
+  const btn = document.getElementById('compatBtn');
+  btn.disabled = true;
+  btn.style.background = '';
+  btn.style.cursor = '';
+
+  // NO ocultar el resultado — solo subir al inicio de la sección
+  document.getElementById('seccionCompatibilidad').scrollIntoView({behavior:'smooth', block:'start'});
 }
 </script>
 
