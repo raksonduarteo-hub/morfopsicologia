@@ -2527,61 +2527,42 @@ CRITERIOS DE ANÁLISIS OBLIGATORIOS:
     // PASO 3: Cruzar perfiles y generar compatibilidad
     document.getElementById('compatLoading').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px;">Generando reporte de compatibilidad<span class="compat-loading-dot"></span><span class="compat-loading-dot"></span><span class="compat-loading-dot"></span></div>';
 
-    const promptCompat = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Analiza la compatibilidad entre dos perfiles morfopsicológicos con HONESTIDAD CLÍNICA.
+    const promptCompat = `Eres un morfopsicólogo clínico experto en el método del Dr. Louis Corman. Tu tarea es evaluar la compatibilidad entre dos personas según sus perfiles morfopsicológicos.
 
-PERFILES:
-
-PERSONA 1:
+PERFIL PERSONA 1:
 ${JSON.stringify(perfil1, null, 2)}
 
-PERSONA 2:
+PERFIL PERSONA 2:
 ${JSON.stringify(perfil2, null, 2)}
 
-REGLAS DE PUNTUACIÓN — sigue esta escala morfopsicológica con rigor:
+INSTRUCCIONES:
 
-85-100 → Perfiles estructuralmente muy afines: mismo biotipo O biotipos complementarios (dilatado+dilatado, retraído+retraído) + zonas dominantes que se refuerzan + tonicidades similares + sin tensión interna alta en ninguno. Esta combinación es RARA.
+Primero, razona internamente sobre estos aspectos antes de dar el puntaje:
+1. ¿Son los biotipos iguales, complementarios u opuestos?
+2. ¿Las zonas dominantes se refuerzan, complementan o chocan?
+3. ¿Las tonicidades son similares o muy distintas?
+4. ¿Hay tensión interna en alguno de los perfiles?
+5. ¿Qué rasgos específicos (nariz, mandíbula, frente, ojos, boca) muestran afinidad o conflicto?
 
-70-84 → Buena base: biotipos compatibles + al menos 1 zona dominante en común + tensión interna leve o ninguna en ambos. Hay fricciones menores pero manejables.
-
-55-69 → Compatibilidad media: biotipos distintos pero con puntos de contacto en alguna zona. Puede funcionar con esfuerzo consciente. Fricciones reales en lo cotidiano.
-
-40-54 → Compatibilidad baja: biotipos opuestos (dilatado vs retraído) + zonas dominantes en conflicto + al menos uno con tensión interna moderada/alta. Requiere mucho trabajo.
-
-0-39 → Perfiles discordantes: todo en tensión estructural — biotipos opuestos + tonicidades incompatibles + zonas dominantes que chocan + tensión interna alta en uno o ambos.
-
-CRITERIOS ESPECÍFICOS DE PENALIZACIÓN (cada uno resta puntos):
-- Biotipos opuestos sin zonas compensatorias: -15 puntos
-- Zonas dominantes que compiten (ambos mentales sin emocional desarrollado): -10 puntos  
-- Tensión interna alta en uno o ambos perfiles: -10 puntos
-- Nariz pequeña/poco desarrollada en ambos (bajo desarrollo emocional/vincular): -8 puntos
-- Tonicidades muy distintas (hipertónico vs hipotónico extremo): -8 puntos
-- Mandíbulas muy distintas (uno muy fuerte, otro muy débil): -5 puntos
-
-CRITERIOS DE BONIFICACIÓN:
-- Mismo biotipo: +10 puntos
-- Zonas dominantes complementarias (uno mental + otro emocional): +8 puntos
-- Tonicidades similares: +5 puntos
-- Sin tensión interna en ninguno: +5 puntos
-
-IMPORTANTE:
-- La mayoría de combinaciones aleatorias cae entre 45-65. Puntajes sobre 75 requieren afinidad real demostrable.
-- Si hay tensión interna alta en ambos, el techo máximo es 65.
-- Sé honesto aunque el resultado sea bajo — un puntaje de 35 es válido y útil si corresponde.
-- Las armonias y tensiones deben basarse en rasgos morfológicos CONCRETOS observados, no en generalidades.
+Luego asigna un puntaje del 0 al 100 que refleje genuinamente esa realidad:
+- Usa TODO el rango. Perfiles muy afines pueden llegar a 85-95. Perfiles muy opuestos pueden bajar a 15-30.
+- Un puntaje de 60-70 indica compatibilidad real con fricciones manejables — no es "malo".
+- No hay un rango "normal" — cada combinación es única. Dos personas con biotipos idénticos pueden llegar a 90. Dos con todo opuesto pueden bajar a 20.
+- El puntaje debe ser coherente con los rasgos descritos. Si hay mucha afinidad morfológica, sube. Si hay mucho choque, baja. Sin miedo.
 
 Responde SOLO con JSON válido puro sin texto extra, sin bloques de código markdown:
 {
-  "persona1": "2 frases honestas describiendo el perfil — fortalezas Y limitaciones",
-  "persona2": "2 frases honestas describiendo el perfil — fortalezas Y limitaciones",
-  "puntuacion": 55,
-  "puntuacion_razonamiento": "1 frase explicando en qué rasgos morfológicos específicos se basa el puntaje",
-  "resumen": "2-3 frases honestas sobre la dinámica real entre estos perfiles",
-  "armonias": ["armonía basada en rasgo concreto 1", "armonía basada en rasgo concreto 2", "armonía basada en rasgo concreto 3"],
-  "tensiones": ["tensión basada en rasgo concreto 1", "tensión basada en rasgo concreto 2"],
-  "dinamica_amor": "2-3 frases honestas sobre la relación romántica — incluyendo dificultades reales",
-  "dinamica_trabajo": "2 frases sobre cómo trabajarían juntos — con fricción si corresponde",
-  "consejo": "1 consejo concreto y específico para esta combinación en particular",
-  "dato_curioso": "1 observación morfopsicológica específica de esta combinación"
+  "persona1": "2 frases describiendo el perfil — fortalezas y limitaciones reales",
+  "persona2": "2 frases describiendo el perfil — fortalezas y limitaciones reales",
+  "puntuacion": 72,
+  "puntuacion_razonamiento": "1 frase explicando qué rasgos morfológicos concretos determinaron este puntaje",
+  "resumen": "2-3 frases sobre la dinámica real entre estos perfiles",
+  "armonias": ["afinidad concreta 1", "afinidad concreta 2", "afinidad concreta 3"],
+  "tensiones": ["fricción concreta 1", "fricción concreta 2"],
+  "dinamica_amor": "2-3 frases sobre la relación romántica con sus luces y sombras",
+  "dinamica_trabajo": "2 frases sobre cómo funcionarían trabajando juntos",
+  "consejo": "1 consejo específico para esta combinación particular",
+  "dato_curioso": "1 observación morfopsicológica interesante y específica de esta dupla"
 }`;
 
     const r3 = await fetch('/api/claude', {
@@ -2676,7 +2657,13 @@ Responde SOLO con JSON válido puro sin texto extra, sin bloques de código mark
         <div style="font-size:13px;color:var(--ink2);line-height:1.6;">${data.dato_curioso}</div>
       </div>
 
-      <button onclick="resetCompatibilidad()" style="width:100%;margin-top:1.5rem;padding:12px;background:none;border:1px solid var(--border2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink3);cursor:pointer;">Analizar otra combinación</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:1.5rem;">
+        <button onclick="compartirCompatibilidad(${pct}, '${etiqueta}', \`${(data.resumen||'').replace(/`/g,"'")}\`, \`${(data.puntuacion_razonamiento||'').replace(/`/g,"'")}\`)" style="padding:12px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#f77737);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="white" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="white" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="white"/></svg>
+          Compartir
+        </button>
+        <button onclick="resetCompatibilidad()" style="padding:12px;background:none;border:1px solid var(--border2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink3);cursor:pointer;">Analizar otra</button>
+      </div>
     `;
 
     document.getElementById('compatResult').style.display = 'block';
@@ -2690,6 +2677,133 @@ Responde SOLO con JSON válido puro sin texto extra, sin bloques de código mark
   document.getElementById('compatLoading').style.display = 'none';
 }
 
+
+function compartirCompatibilidad(pct, etiqueta, resumen, razonamiento) {
+  // Genera imagen con canvas para compartir
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo crema
+  ctx.fillStyle = '#FAF8F5';
+  ctx.fillRect(0, 0, 1080, 1080);
+
+  // Franja superior dorada
+  ctx.fillStyle = '#9B7B4A';
+  ctx.fillRect(0, 0, 1080, 8);
+
+  // Logo / marca
+  ctx.fillStyle = '#9B7B4A';
+  ctx.font = 'bold 28px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('PSICOLOGÍA FACIAL', 540, 80);
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#8B7355';
+  ctx.fillText('Morfopsicología · Método Dr. Louis Corman', 540, 115);
+
+  // Línea separadora
+  ctx.strokeStyle = '#E8E0D5';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(100, 140); ctx.lineTo(980, 140);
+  ctx.stroke();
+
+  // Título
+  ctx.fillStyle = '#2C2416';
+  ctx.font = 'bold 42px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Análisis de Compatibilidad', 540, 210);
+
+  // Círculo de puntaje
+  const cx = 540, cy = 420, r = 160;
+  const color = pct >= 85 ? '#4A7C59' : pct >= 70 ? '#6B9E78' : pct >= 55 ? '#9B7B4A' : pct >= 40 ? '#C4956A' : '#C4726A';
+
+  // Círculo fondo
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = '#E8E0D5';
+  ctx.lineWidth = 20;
+  ctx.stroke();
+
+  // Arco de progreso
+  const startAngle = -Math.PI / 2;
+  const endAngle = startAngle + (pct / 100) * Math.PI * 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, endAngle);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 20;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Puntaje
+  ctx.fillStyle = color;
+  ctx.font = 'bold 96px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(pct + '%', cx, cy + 20);
+
+  // Etiqueta
+  ctx.fillStyle = '#6B5B45';
+  ctx.font = '24px sans-serif';
+  ctx.fillText(etiqueta.toUpperCase(), cx, cy + 60);
+
+  // Razonamiento (si existe)
+  if (razonamiento) {
+    ctx.fillStyle = '#8B7355';
+    ctx.font = 'italic 20px serif';
+    const maxW = 700;
+    const words = razonamiento.split(' ');
+    let line = '', y = 630;
+    for (const w of words) {
+      const test = line + w + ' ';
+      if (ctx.measureText(test).width > maxW && line) {
+        ctx.fillText(line.trim(), cx, y);
+        line = w + ' '; y += 30;
+      } else line = test;
+    }
+    ctx.fillText(line.trim(), cx, y);
+  }
+
+  // Resumen
+  ctx.fillStyle = '#4A3728';
+  ctx.font = '22px sans-serif';
+  const maxW = 800;
+  const words2 = resumen.split(' ');
+  let line2 = '', y2 = razonamiento ? 740 : 660;
+  for (const w of words2) {
+    const test = line2 + w + ' ';
+    if (ctx.measureText(test).width > maxW && line2) {
+      ctx.fillText(line2.trim(), cx, y2);
+      line2 = w + ' '; y2 += 34;
+      if (y2 > 860) { line2 += '...'; break; }
+    } else line2 = test;
+  }
+  ctx.fillText(line2.trim(), cx, y2);
+
+  // URL
+  ctx.fillStyle = '#9B7B4A';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('morfopsicologia-production.up.railway.app', cx, 980);
+
+  // Franja inferior
+  ctx.fillStyle = '#9B7B4A';
+  ctx.fillRect(0, 1072, 1080, 8);
+
+  // Descargar imagen
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'compatibilidad-morfopsicologica.png';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Mostrar instrucciones
+    setTimeout(() => {
+      alert('✅ Imagen descargada\n\nPara compartir en Instagram:\n1. Abre Instagram\n2. Crea una nueva historia o publicación\n3. Selecciona la imagen descargada');
+    }, 500);
+  }, 'image/png');
+}
 
 function resetCompatibilidad() {
   compatImg1 = null; compatType1 = null;
