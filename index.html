@@ -2414,23 +2414,35 @@ function loadCompatImg(num, input) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
-    const base64 = dataUrl.split(',')[1];
-    const mtype = file.type || 'image/jpeg';
-    if (num === 1) { compatImg1 = base64; compatType1 = mtype; }
-    else { compatImg2 = base64; compatType2 = mtype; }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxSize = 1024;
+      let w = img.width, h = img.height;
+      if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+      else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      const base64 = compressed.split(',')[1];
 
-    const preview = document.getElementById('compatPreview' + num);
-    const box = document.getElementById('compatBox' + num);
-    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">`;
-    box.style.padding = '0';
-    box.style.border = '2px solid var(--rose)';
+      if (num === 1) { compatImg1 = base64; compatType1 = 'image/jpeg'; }
+      else { compatImg2 = base64; compatType2 = 'image/jpeg'; }
 
-    const btn = document.getElementById('compatBtn');
-    if (compatImg1 && compatImg2) {
-      btn.disabled = false;
-      btn.style.background = 'var(--rose)';
-      btn.style.cursor = 'pointer';
-    }
+      const preview = document.getElementById('compatPreview' + num);
+      const box = document.getElementById('compatBox' + num);
+      preview.innerHTML = `<img src="${compressed}" style="width:100%;height:160px;object-fit:cover;object-position:center 20%;border-radius:8px;display:block;">`;
+      box.style.padding = '0';
+      box.style.border = '2px solid var(--rose)';
+
+      const btn = document.getElementById('compatBtn');
+      if (compatImg1 && compatImg2) {
+        btn.disabled = false;
+        btn.style.background = 'var(--rose)';
+        btn.style.cursor = 'pointer';
+      }
+    };
+    img.src = dataUrl;
   };
   reader.readAsDataURL(file);
 }
